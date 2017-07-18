@@ -12,38 +12,67 @@ import router from './router'
 import Vuex from 'vuex'
 import axios from 'axios'
 
+// API Constants
+
+const WEATHER_API = 'ff87b07316bb79c4e2e28f37ffe61dbf'
+
 // Cordova plugins
 
-class AudioStream {
+class AlarmProcedure {
   constructor (name, options) {
     this.name = name
-    this.audio = new Audio()
     this.options = options
   }
+}
+
+class AudioStream extends AlarmProcedure {
+  constructor (name, options) {
+    super()
+    this.audio = new Audio()
+  }
+
   trigger () {
     this.audio.src = this.options['stream']
     this.audio.play()
+    setInterval(this.playUntilTimeout, 1000)
+  }
+  playUntilTimeout () {
+    this.options.timeOut--
+    if (this.options.timeOut <= 0) {
+      this.audio.pause()
+    }
   }
   stop () {
     this.audio.pause()
   }
 }
 
-class Weather {
-  constructor (name, options) {
+class Weather extends AlarmProcedure {
+  super (name, options) {
     this.name = name
     this.options = options
-    this.axios = axios
   }
-  trigger () {
-    let getUrl = `https://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}`
+  speak (string, cb) {
+    TTS.speak(string, function () {
+      cb()
+    }, function (reason) {
+      cb()
+    })
+  }
+  trigger (cb) {
+    let getUrl = `http://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}&APPID=${WEATHER_API}`
     console.log(getUrl)
-    this.axios.get(`https://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}`).then(response => {
-      TTS.speak(response.weather.description, function () {
-        alert('success')
-      }, function (reason) {
-        alert(reason)
-      })
+    axios.get(`http://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}&units=${this.options.unit}&APPID=${WEATHER_API}`).then(response => {
+      let data = response.data
+      console.log(data)
+      let weatherString = `The current weather is: ${data.weather[0].description}
+The current temperature is ${data.main.temp}, with a low of ${data.main.temp_min} and a high of ${data.main.temp_max}`
+      if (typeof cordova !== 'undefined') {
+        this.speak(weatherString, cb)
+      }
+      else {
+        cb()
+      }
     }).catch(e => {
       console.log(e)
     })
@@ -53,9 +82,9 @@ class Weather {
   }
 }
 
-let weather = new Weather('Weather', {zip: '98335', countryCode: 'us'})
+let weather = new Weather('Weather', {zip: '98335', countryCode: 'us', unit: 'imperial'})
 
-let npr = new AudioStream('NPR Stream', {stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3'})
+let npr = new AudioStream('NPR Stream', {stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3', timeOut: 5})
 
 console.log(npr.name)
 
@@ -66,7 +95,7 @@ const store = new Vuex.Store({
   strict: process.env.NODE_ENV,
   state: {
     count: 0,
-    procedures: [weather],
+    procedures: [npr, weather],
     alarmOff: true
   },
   mutations: {
