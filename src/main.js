@@ -10,6 +10,7 @@ import Vue from 'vue'
 import Quasar from 'quasar'
 import router from './router'
 import Vuex from 'vuex'
+import axios from 'axios'
 
 // Cordova plugins
 
@@ -28,15 +29,44 @@ class AudioStream {
   }
 }
 
-var npr = new AudioStream('NPR Stream', {stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3'})
+class Weather {
+  constructor (name, options) {
+    this.name = name
+    this.options = options
+    this.axios = axios
+  }
+  trigger () {
+    let getUrl = `https://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}`
+    console.log(getUrl)
+    this.axios.get(`https://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}`).then(response => {
+      TTS.speak(response.weather.description, function () {
+        alert('success')
+      }, function (reason) {
+        alert(reason)
+      })
+    }).catch(e => {
+      console.log(e)
+    })
+  }
+  stop () {
+    this.audio.pause()
+  }
+}
+
+let weather = new Weather('Weather', {zip: '98335', countryCode: 'us'})
+
+let npr = new AudioStream('NPR Stream', {stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3'})
+
+console.log(npr.name)
 
 Vue.use(Quasar) // Install Quasar Framework
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
+  strict: process.env.NODE_ENV,
   state: {
     count: 0,
-    procedures: [npr],
+    procedures: [weather],
     alarmOff: true
   },
   mutations: {
