@@ -14,9 +14,10 @@ import axios from 'axios'
 // Cordova plugins
 
 class AlarmProcedure {
-  constructor (name, options) {
+  constructor (name, options, type) {
     this.name = name
     this.options = options
+    this.type = type
   }
   static get name () {
     return this.name
@@ -28,11 +29,11 @@ class AlarmProcedure {
 
 class AudioStream extends AlarmProcedure {
   constructor (name, options) {
-    super(name, options)
+    super(name, options, 'audiostream')
     this.audio = new Audio()
   }
 
-  trigger (cb) {
+  trigger () {
     this.audio.src = this.options['stream']
     this.audio.play()
     // Locally scoped so Vuex store is not mutated
@@ -42,11 +43,10 @@ class AudioStream extends AlarmProcedure {
         timeOut--
         if (timeOut <= 0) {
           if (store.state.userProcedures.length > 0) {
-            store.commit('nextProcedure')
-            cb.trigger(store.state.userProcedures[0])
+            store.dispatch('playNextUserProcedure')
           }
           else {
-            if (typeof cb.trigger !== 'undefined') { cb.trigger() }
+            store.dispatch('playNextUserProcedure')
           }
           this.audio.pause()
           clearInterval(timeOutID)
@@ -62,48 +62,30 @@ class AudioStream extends AlarmProcedure {
   }
 }
 
-class Weather extends AlarmProcedure {
+const WeatherClass = class Weather extends AlarmProcedure {
   constructor (name, options) {
-    super(name, options)
+    super(name, options, 'weather')
     this.WEATHER_API = 'ff87b07316bb79c4e2e28f37ffe61dbf'
   }
-  speak (string, cb) {
+  speak (string) {
     TTS.speak(string, function () {
       console.log('speak success')
-      if (store.state.userProcedures.length > 0) {
-        store.commit('nextProcedure')
-        cb.trigger(store.state.userProcedures[0])
-      }
-      else {
-        if (typeof cb !== 'undefined') { cb.trigger() }
-      }
+      store.dispatch('playNextUserProcedure')
     }, function (reason) {
-      if (store.state.userProcedures.length > 0) {
-        store.commit('nextProcedure')
-        cb.trigger(store.state.userProcedures[0])
-      }
-      else {
-        if (typeof cb !== 'undefined') { cb.trigger() }
-      }
+      store.dispatch('playNextUserProcedure')
       console.log(reason)
     })
   }
-  trigger (cb) {
+  trigger () {
     axios.get(`http://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}&units=${this.options.unit}&APPID=${this.WEATHER_API}`).then(response => {
       let data = response.data
       let weatherString = `The current weather is: ${data.weather[0].description}
 The current temperature is ${data.main.temp}, with a low of ${data.main.temp_min} and a high of ${data.main.temp_max}`
       if (typeof cordova !== 'undefined') {
-        this.speak(weatherString, cb)
+        this.speak(weatherString)
       }
       else {
-        if (store.state.userProcedures.length > 1) {
-          store.commit('nextProcedure')
-          cb.trigger(store.state.userProcedures[0])
-        }
-        else {
-          if (typeof cb !== 'undefined') { cb.trigger() }
-        }
+        store.dispatch('playNextUserProcedure')
         console.log(weatherString)
       }
     }).catch(e => {
@@ -112,7 +94,13 @@ The current temperature is ${data.main.temp}, with a low of ${data.main.temp_min
   }
 }
 
-let weather = new Weather('Weather', {zip: '98335', countryCode: 'us', unit: 'imperial'})
+function assignClass (object) {
+  if (object.type === 'weather') {
+    return new WeatherClass(object.name, object.options)
+  }
+}
+
+let weather = new WeatherClass('Weather', {zip: '98335', countryCode: 'us', unit: 'imperial'})
 
 let npr = new AudioStream('NPR Stream', {stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3', timeOut: null})
 
@@ -137,11 +125,11 @@ const store = new Vuex.Store({
     alarmOff (state) {
       state.alarmOff = false
     },
-    addUserProcedure (state, p) {
-      state.userProcedures.push(p)
-    },
     addProcedure (state, p) {
       state.procedures.push(p)
+    },
+    addUserProcedure (state, p) {
+      state.userProcedures.push(p)
     },
     removeProcedure (state, pindex) {
       state.procedures.splice(pindex, 1)
@@ -155,12 +143,12 @@ const store = new Vuex.Store({
       Quasar.LocalStorage.set('procedures', state.procedures)
     },
     createWeather (state, p) {
-      let weather = new Weather(p.name, p.options)
+      let weather = new WeatherClass(p.name, p.options)
       state.procedures.push(weather)
       Quasar.LocalStorage.set('procedures', state.procedures)
       console.log(Quasar.LocalStorage.get.item('procedures'))
     },
-    nextProcedure (state) {
+    removeFirstUserProcedure (state) {
       state.userProcedures.shift()
     },
     updateProc (state, options) {
@@ -188,10 +176,16 @@ const store = new Vuex.Store({
       store.commit('updateProc', options)
     },
     playCurrentUserProcedure () {
-      console.log(Object.getOwnPropertyNames(store.state.userProcedures[0]).filter(function (p) {
-        return typeof store.state.userProcedures[p] === 'function'
-      }))
       store.state.userProcedures[0].trigger()
+    },
+    playNextUserProcedure () {
+      if (store.state.userProcedures.length > 1) {
+        store.state.userProcedures[0].trigger()
+        store.commit('removeFirstUserProcedure')
+      }
+      else if (store.state.userProcedures.length === 1) {
+        store.commit('removeFirstUserProcedure')
+      }
     }
   }
 })
@@ -201,19 +195,21 @@ store.commit('addProcedure', npr)
 
 // Init tempProcedures
 let local = Quasar.LocalStorage
+// local.clear('userProcedures')
 console.log(local.get.item('userProcedures'))
 if (local.get.item('userProcedures') !== null && local.get.item('userProcedures') !== 'undefined') {
   local.get.item('userProcedures').forEach(function (p) {
-    store.commit('addUserProcedure', p)
+    console.log('Loaded user prototype')
+    console.log(p)
+    store.commit('addUserProcedure', assignClass(p))
   })
   Quasar.LocalStorage.set('userProcedures', store.state.userProcedures)
 }
-console.log(local.get.item('procedures'))
 if (Quasar.LocalStorage.get.item('procedures') != null && local.get.item('procedures') !== 'undefined') {
   Quasar.LocalStorage.get.item('procedures').forEach(function (p) {
     if (!(p.name === 'NPR Stream' || p.name === 'Weather')) {
       console.log('add procedure from local storage')
-      store.commit('addProcedure', p)
+      store.commit('addProcedure', assignClass(p))
     }
   })
   Quasar.LocalStorage.set('procedures', store.state.procedures)
