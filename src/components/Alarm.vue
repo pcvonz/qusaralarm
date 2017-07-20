@@ -29,10 +29,7 @@ export default {
           if (typeof cordova !== 'undefined') {
             cordova.plugins.backgroundMode.moveToForeground()
           }
-          for (var proc in this.$store.state.procedures) {
-            console.log(this.$store.state.procedures[proc])
-            this.$store.state.procedures[proc].trigger()
-          }
+          this.$store.state.userProcedures[0].trigger(this.$store.state.userProcedures[0])
           this.triggered = true
         }
       }

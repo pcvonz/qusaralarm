@@ -10,5 +10,4 @@ cordova/platforms
 cordova/plugins
 thumbs.db
 !.gitkeep
-yarn.lock
 yarn-error.log

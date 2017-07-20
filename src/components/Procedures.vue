@@ -2,26 +2,26 @@
   <!-- Don't drop "q-app" class -->
   <div id="q-app">
     <ul>
-      <li v-for="proc in procedureObject" :proc="proc">
-        {{ proc.name }} <br />
-        <input v-for="key in Object.keys(proc.options)" :placeholder="proc.options[key]">
-        <button v-on:click="addProcedure(proc)">Add this to alarm </button>
+      <li v-for="(proc, index) in procedureObject">
+        <procedure v-on:addUserProcedure="addUserProcedure(proc)" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
       </li>
     </ul>
   </div>
 </template>
 
 <script>
+import Procedure from './Procedure'
 export default {
   name: 'procedures',
+  components: { Procedure },
   data () {
     return {
       procedureObject: this.$store.state.procedures
     }
   },
   methods: {
-    addProcedure: function (proc) {
-      this.$emit('addProcedure', proc)
+    addUserProcedure: function (proc) {
+      this.$store.commit('addUserProcedure', proc)
     }
   },
   mounted: function () {

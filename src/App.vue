@@ -9,12 +9,15 @@
     <p> Alarm set to {{ alarm }} </p>
     <h3> Current procedures </h3>
     <ul>
-      <li v-for="proc in procedures">
+      <li v-for="proc in userProcedures">
         {{ proc.name }}
       </li>
     </ul>
     <h3> Available Procedures </h3>
-    <procedures v-on:addProcedure="addProcedure"></procedures>
+    <procedures></procedures>
+    <h3> Create Procedure</h3>
+    <audio-stream></audio-stream>
+    <weather></weather>
   </div>
 </template>
 
@@ -22,17 +25,20 @@
 import Clock from 'components/Clock'
 import Alarm from 'components/Alarm'
 import Procedures from 'components/Procedures'
+import Weather from 'components/Weather'
+import AudioStream from 'components/AudioStream'
 // import axios from 'axios'
 
 export default {
-  components: { Clock, Alarm, Procedures },
+  components: { Clock, Alarm, Procedures, Weather, AudioStream },
   data () {
     return { title: 'Clock',
       alarm: null,
       alarms: [{name: 'Default'}],
       time: null,
       newClockName: null,
-      procedures: []
+      procedures: this.$store.state.procedures,
+      userProcedures: this.$store.state.userProcedures
     }
   },
   methods: {
@@ -45,10 +51,6 @@ export default {
     addAlarm: function () {
       this.alarms.push({name: this.newClockName})
       this.alarmProcedures.procedures[0].trigger()
-    },
-    addProcedure: function (proc) {
-      this.procedures.push(proc)
-      console.log(this.procedures)
     },
     stopAlarm: function () {
       console.log('hello?')

@@ -1,34 +1,41 @@
 <template>
   <!-- Don't drop "q-app" class -->
   <div>
-		<input v-model:stream="stream" v-on:keyup.enter="fetchData" placeholder="stream"/>
-    <button v-on:click="playAudio">Play Audio</button>
+    <h4> Audio Steam </h4>
+    <div>
+      <input v-model:name="name" placeholder="name"/>
+    </div>
+    <div>
+      <input v-model:stream="stream" placeholder="stream"/>
+      <input type="file" @change="onFileChange"/> 
+    </div>
+    <div>
+      <input v-model:timeOut="timeOut" placeholder="Time Out"/>
+    </div>
+    <button v-on:click="createProcedure">Create Procedure</button>
   </div>
 </template>
 
 <script>
-var audio = new Audio()
 export default {
   name: 'audio-stream',
-  props: ['time', 'alarm'],
+  props: [],
   data () {
     return {
-      stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3'
+      name: null,
+      stream: null,
+      timeOut: null
     }
   },
   methods: {
-    playAudio: function () {
-      if (this.time === this.alarm) {
-        audio.src = this.stream
-        audio.play()
-      }
+    createProcedure () {
+      let stream = {name: this.name, options: {stream: this.stream, timeOut: this.timeOut}}
+      this.$store.commit('createStream', stream)
     },
-    initAudio: function () {
-      setInterval(this.playAudio, 1000)
+    onFileChange (e) {
+      console.log('hello')
+      this.stream = 'file:///' + e.target.value
     }
-  },
-  mounted: function () {
-    this.initAudio()
   }
 }
 </script>
