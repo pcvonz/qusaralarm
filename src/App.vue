@@ -9,8 +9,9 @@
     <p> Alarm set to {{ alarm }} </p>
     <h3> Current procedures </h3>
     <ul>
-      <li v-for="proc in userProcedures">
+      <li v-for="(proc, index) in userProcedures">
         {{ proc.name }}
+        <button v-on:click="removeUserProcedure(index)"> Remove </button>
       </li>
     </ul>
     <h3> Available Procedures </h3>
@@ -56,10 +57,11 @@ export default {
       this.alarmProcedures.procedures[0].trigger()
     },
     stopAlarm: function () {
-      console.log('hello?')
       this.$store.commit('alarmOff')
-      console.log(this.$store.state.userProcedures[0])
       this.$store.state.userProcedures[0].stop()
+    },
+    removeUserProcedure: function (index) {
+      this.$store.dispatch('removeUserProcedure', index)
     },
     clearStorage: function () {
       console.log('cleared')

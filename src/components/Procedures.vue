@@ -21,11 +21,8 @@ export default {
   },
   methods: {
     addUserProcedure: function (proc) {
-      this.$store.commit('addUserProcedure', proc)
+      this.$store.dispatch('addUserProcedure', proc)
     }
-  },
-  mounted: function () {
-    console.log(this.$store.state.procedures)
   }
 }
 </script>

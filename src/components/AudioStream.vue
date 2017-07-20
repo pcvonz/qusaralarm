@@ -33,7 +33,6 @@ export default {
       this.$store.commit('createStream', stream)
     },
     onFileChange (e) {
-      console.log('hello')
       this.stream = 'file:///' + e.target.value
     }
   }

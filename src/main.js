@@ -97,7 +97,7 @@ The current temperature is ${data.main.temp}, with a low of ${data.main.temp_min
         this.speak(weatherString, cb)
       }
       else {
-        if (store.state.userProcedures.length > 0) {
+        if (store.state.userProcedures.length > 1) {
           store.commit('nextProcedure')
           cb.trigger(store.state.userProcedures[0])
         }
@@ -139,11 +139,15 @@ const store = new Vuex.Store({
     },
     addUserProcedure (state, p) {
       state.userProcedures.push(p)
-      Quasar.LocalStorage.set('userProcedures', state.userProcedures)
     },
     addProcedure (state, p) {
       state.procedures.push(p)
-      Quasar.LocalStorage.set('procedures', state.procedures)
+    },
+    removeProcedure (state, pindex) {
+      state.procedures.splice(pindex, 1)
+    },
+    removeUserProcedure (state, pindex) {
+      state.userProcedures.splice(pindex, 1)
     },
     createStream (state, p) {
       let stream = new AudioStream(p.name, {stream: p.options.stream, timeOut: p.options.timeOut})
@@ -154,36 +158,66 @@ const store = new Vuex.Store({
       let weather = new Weather(p.name, p.options)
       state.procedures.push(weather)
       Quasar.LocalStorage.set('procedures', state.procedures)
+      console.log(Quasar.LocalStorage.get.item('procedures'))
     },
     nextProcedure (state) {
       state.userProcedures.shift()
     },
     updateProc (state, options) {
-      console.log(options)
       state.procedures[options.pindex].options[options.key] = options.value
-      console.log(state.procedures[options.pindex].options[options.key])
+    }
+  },
+  actions: {
+    addProcedure (state, p) {
+      store.commit('addProcedure', p)
+      Quasar.LocalStorage.set('procedures', store.state.procedures)
+    },
+    addUserProcedure (state, p) {
+      store.commit('addUserProcedure', p)
+      Quasar.LocalStorage.set('userProcedures', store.state.userProcedures)
+    },
+    removeProcedure (state, pindex) {
+      store.commit('removeProcedure', pindex)
+      Quasar.LocalStorage.set('procedures', store.state.procedures)
+    },
+    removeUserProcedure (state, pindex) {
+      store.commit('removeUserProcedure', pindex)
+      Quasar.LocalStorage.set('userProcedures', store.state.userProcedures)
+    },
+    updateProc (state, options) {
+      store.commit('updateProc', options)
+    },
+    playCurrentUserProcedure () {
+      console.log(Object.getOwnPropertyNames(store.state.userProcedures[0]).filter(function (p) {
+        return typeof store.state.userProcedures[p] === 'function'
+      }))
+      store.state.userProcedures[0].trigger()
     }
   }
 })
 
+store.commit('addProcedure', weather)
+store.commit('addProcedure', npr)
+
 // Init tempProcedures
 let local = Quasar.LocalStorage
+console.log(local.get.item('userProcedures'))
 if (local.get.item('userProcedures') !== null && local.get.item('userProcedures') !== 'undefined') {
   local.get.item('userProcedures').forEach(function (p) {
     store.commit('addUserProcedure', p)
   })
+  Quasar.LocalStorage.set('userProcedures', store.state.userProcedures)
 }
+console.log(local.get.item('procedures'))
 if (Quasar.LocalStorage.get.item('procedures') != null && local.get.item('procedures') !== 'undefined') {
-  console.log(typeof local.get.item('procedures'))
   Quasar.LocalStorage.get.item('procedures').forEach(function (p) {
     if (!(p.name === 'NPR Stream' || p.name === 'Weather')) {
+      console.log('add procedure from local storage')
       store.commit('addProcedure', p)
     }
   })
+  Quasar.LocalStorage.set('procedures', store.state.procedures)
 }
-
-store.commit('addProcedure', weather)
-store.commit('addProcedure', npr)
 
 Quasar.start(() => {
   /* eslint-disable no-new */

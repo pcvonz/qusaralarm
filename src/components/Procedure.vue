@@ -4,6 +4,7 @@
     {{ name }} <br />
     <input v-for="(key, index) in Object.keys(options)" :value="options[key]" :data-index="index" :data-key="key" @input="updateProc" :placeholder="options[key]">
     <button v-on:click="addUserProcedure()">Add this to alarm </button>
+    <button v-on:click="removeProcedure()">Remove </button>
   </div>
 </template>
 
@@ -19,12 +20,12 @@ export default {
     addUserProcedure: function (proc) {
       this.$emit('addUserProcedure', proc)
     },
+    removeProcedure: function (proc) {
+      this.$store.dispatch('removeProcedure', this.pindex)
+    },
     updateProc (e) {
-      this.$store.commit('updateProc', {pindex: this.pindex, value: e.target.value, index: e.target.dataset.index, key: e.target.dataset.key})
+      this.$store.dispatch('updateProc', {pindex: this.pindex, value: e.target.value, index: e.target.dataset.index, key: e.target.dataset.key})
     }
-  },
-  mounted: function () {
-    console.log(this.$store.state.procedures)
   }
 }
 </script>
