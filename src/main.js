@@ -123,7 +123,7 @@ const store = new Vuex.Store({
   strict: process.env.NODE_ENV,
   state: {
     count: null,
-    procedures: [weather, npr],
+    procedures: [],
     userProcedures: [],
     alarmOff: true
   },
@@ -176,9 +176,14 @@ if (local.get.item('userProcedures') !== null && local.get.item('userProcedures'
 if (Quasar.LocalStorage.get.item('procedures') != null && local.get.item('procedures') !== 'undefined') {
   console.log(typeof local.get.item('procedures'))
   Quasar.LocalStorage.get.item('procedures').forEach(function (p) {
-    store.commit('addProcedure', p)
+    if (!(p.name === 'NPR Stream' || p.name === 'Weather')) {
+      store.commit('addProcedure', p)
+    }
   })
 }
+
+store.commit('addProcedure', weather)
+store.commit('addProcedure', npr)
 
 Quasar.start(() => {
   /* eslint-disable no-new */

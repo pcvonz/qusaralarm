@@ -29,6 +29,7 @@ export default {
           if (typeof cordova !== 'undefined') {
             cordova.plugins.backgroundMode.moveToForeground()
           }
+          console.log(this.$store.state.userProcedures[0])
           this.$store.state.userProcedures[0].trigger(this.$store.state.userProcedures[0])
           this.triggered = true
         }

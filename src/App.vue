@@ -18,6 +18,8 @@
     <h3> Create Procedure</h3>
     <audio-stream></audio-stream>
     <weather></weather>
+    <h3> Clear Storage </h3>
+    <button v-on:click="clearStorage">Clear Storage</button>
   </div>
 </template>
 
@@ -27,6 +29,7 @@ import Alarm from 'components/Alarm'
 import Procedures from 'components/Procedures'
 import Weather from 'components/Weather'
 import AudioStream from 'components/AudioStream'
+import { LocalStorage } from 'quasar'
 // import axios from 'axios'
 
 export default {
@@ -55,7 +58,13 @@ export default {
     stopAlarm: function () {
       console.log('hello?')
       this.$store.commit('alarmOff')
-      this.$store.state.procedures[0].stop()
+      console.log(this.$store.state.userProcedures[0])
+      this.$store.state.userProcedures[0].stop()
+    },
+    clearStorage: function () {
+      console.log('cleared')
+      LocalStorage.clear('procedures')
+      LocalStorage.clear('userProcedures')
     }
   },
   computed: {
