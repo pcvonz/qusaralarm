@@ -37,7 +37,7 @@ class AlarmProcedure {
 
 class HabiticaDailies extends AlarmProcedure {
   constructor (name, options) {
-    super(name, options, 'HabiticaDalies')
+    super(name, options, 'habiticadailies')
     this.api = new Habitica({
       id: options.uidKey,
       apiToken: options.apiKey
@@ -119,8 +119,13 @@ The current temperature is ${data.main.temp}, with a low of ${data.main.temp_min
 }
 
 function assignClass (object) {
-  if (object.type === 'weather') {
-    return new WeatherClass(object.name, object.options)
+  switch (object.type) {
+    case 'weather':
+      return new WeatherClass(object.name, object.options)
+    case 'audiostream':
+      return new AudioStream(object.name, object.options)
+    case 'habiticadailies':
+      return new HabiticaDailies(object.name, object.options)
   }
 }
 
