@@ -19,6 +19,7 @@
     <h3> Create Procedure</h3>
     <audio-stream></audio-stream>
     <weather></weather>
+    <habitica></habitica>
     <h3> Clear Storage </h3>
     <button v-on:click="clearStorage">Clear Storage</button>
   </div>
@@ -30,11 +31,12 @@ import Alarm from 'components/Alarm'
 import Procedures from 'components/Procedures'
 import Weather from 'components/Weather'
 import AudioStream from 'components/AudioStream'
+import Habitica from 'components/Habitica'
 import { LocalStorage } from 'quasar'
 // import axios from 'axios'
 
 export default {
-  components: { Clock, Alarm, Procedures, Weather, AudioStream },
+  components: { Clock, Alarm, Procedures, Weather, AudioStream, Habitica },
   data () {
     return { title: 'Clock',
       alarm: null,

@@ -10,8 +10,7 @@ import Quasar from 'quasar'
 import router from './router'
 import Vuex from 'vuex'
 import axios from 'axios'
-
-// Cordova plugins
+import Habitica from 'habitica'
 
 class AlarmProcedure {
   constructor (name, options, type) {
@@ -24,6 +23,40 @@ class AlarmProcedure {
   }
   static get options () {
     return this.options
+  }
+  speak (string) {
+    TTS.speak(string, function () {
+      console.log('speak success')
+      store.dispatch('playNextUserProcedure')
+    }, function (reason) {
+      store.dispatch('playNextUserProcedure')
+      console.log(reason)
+    })
+  }
+}
+
+class HabiticaDailies extends AlarmProcedure {
+  constructor (name, options) {
+    super(name, options, 'HabiticaDalies')
+    this.api = new Habitica({
+      id: options.uidKey,
+      apiToken: options.apiKey
+    })
+  }
+  trigger () {
+    this.api.get('/tasks/user?type=dailys').then((res) => {
+      let dailyList = []
+      res.data.forEach(function (d) {
+        if (d.isDue) {
+          dailyList.push(d.text)
+        }
+      })
+      let dueDailys = `You have ${dailyList.length} dailies due today: ${dailyList.join(', ')}`
+      console.log(dueDailys)
+      if (typeof cordova !== 'undefined') {
+        this.speak(dueDailys)
+      }
+    })
   }
 }
 
@@ -66,15 +99,6 @@ const WeatherClass = class Weather extends AlarmProcedure {
   constructor (name, options) {
     super(name, options, 'weather')
     this.WEATHER_API = 'ff87b07316bb79c4e2e28f37ffe61dbf'
-  }
-  speak (string) {
-    TTS.speak(string, function () {
-      console.log('speak success')
-      store.dispatch('playNextUserProcedure')
-    }, function (reason) {
-      store.dispatch('playNextUserProcedure')
-      console.log(reason)
-    })
   }
   trigger () {
     axios.get(`http://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}&units=${this.options.unit}&APPID=${this.WEATHER_API}`).then(response => {
@@ -146,7 +170,11 @@ const store = new Vuex.Store({
       let weather = new WeatherClass(p.name, p.options)
       state.procedures.push(weather)
       Quasar.LocalStorage.set('procedures', state.procedures)
-      console.log(Quasar.LocalStorage.get.item('procedures'))
+    },
+    createHabitica (state, p) {
+      let habitica = new HabiticaDailies(p.name, p.options)
+      state.procedures.push(habitica)
+      Quasar.LocalStorage.set('procedures', state.procedures)
     },
     removeFirstUserProcedure (state) {
       state.userProcedures.shift()
@@ -180,8 +208,8 @@ const store = new Vuex.Store({
     },
     playNextUserProcedure () {
       if (store.state.userProcedures.length > 1) {
-        store.state.userProcedures[0].trigger()
         store.commit('removeFirstUserProcedure')
+        store.state.userProcedures[0].trigger()
       }
       else if (store.state.userProcedures.length === 1) {
         store.commit('removeFirstUserProcedure')

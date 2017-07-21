@@ -2409,6 +2409,12 @@ graceful-fs@^4.1.2:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/graceful-readlink/-/graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725"
 
+habitica@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/habitica/-/habitica-4.0.0.tgz#003f14ae35c5fb3c7921025f816dd26706d3e7dc"
+  dependencies:
+    superagent "^2.0.0"
+
 har-schema@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/har-schema/-/har-schema-1.0.5.tgz#d263135f43307c02c602afc8fe95970c0151369e"
@@ -4756,7 +4762,7 @@ stylus@^0.54.5:
     sax "0.5.x"
     source-map "0.1.x"
 
-superagent@^2.2:
+superagent@^2.0.0, superagent@^2.2:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/superagent/-/superagent-2.3.0.tgz#703529a0714e57e123959ddefbce193b2e50d115"
   dependencies:
