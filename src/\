@@ -1,24 +1,40 @@
 <template>
   <!-- Don't drop "q-app" class -->
-    <div class="list">
+  <div id="q-app">
+  <q-layout>
+    <div slot="header"> 
+      <button class="hide-on-drawer-visible" @click="$refs.leftDrawer.open()">
+        <i>menu</i>
+      </button>
       {{ title }} 
+    </div> 
+    <div class="list">
       <button :class="{ isShown: alarmOff }" v-on:click="stopAlarm">Stop Alarm</button>
       <clock v-on:updateTime="updateTime"></clock>
       <alarm v-for="alarm in alarms" v-on:initAlarm="initAlarm" :name="alarm.name" :time="time" :procedures="procedures"></alarm>
       <p> Alarm set to {{ alarm }} </p>
       <h3> Current procedures </h3>
-        <user-procedures :procedureObject="userProcedures"></user-procedures>
+      <div class="item item-link" to="/test" v-for="(proc, index) in userProcedures">
+        {{ proc.name }}
+        <button v-on:click="removeUserProcedure(index)"> Remove </button>
+      </div>
+    </div>
+    <q-drawer ref="leftDrawer">
+      <div class="list platform-delimter">
         <div class="list-header">
           Create or add existing procedures
         </div>
         <h3> Available Procedures </h3>
-        <procedures :procedureObject="procedures"></procedures>
+        <procedures></procedures>
         <h3> Create Procedure</h3>
         <audio-stream></audio-stream>
         <weather></weather>
         <habitica></habitica>
         <h3> Clear Storage </h3>
         <button v-on:click="clearStorage">Clear Storage</button>
+      </div>
+    </q-drawer>
+  </q-layout>
   </div>
 </template>
 
@@ -26,7 +42,6 @@
 import Clock from './Clock'
 import Alarm from './Alarm'
 import Procedures from './Procedures'
-import UserProcedures from './UserProcedures'
 import Weather from './Weather'
 import AudioStream from './AudioStream'
 import Habitica from './Habitica'
@@ -34,7 +49,7 @@ import { LocalStorage } from 'quasar'
 // import axios from 'axios'
 
 export default {
-  components: { Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica },
+  components: { Clock, Alarm, Procedures, Weather, AudioStream, Habitica },
   data () {
     return { title: 'Clock',
       alarm: null,

@@ -186,6 +186,9 @@ const store = new Vuex.Store({
     },
     updateProc (state, options) {
       state.procedures[options.pindex].options[options.key] = options.value
+    },
+    updateUserProc (state, options) {
+      state.userProcedures[options.pindex].options[options.key] = options.value
     }
   },
   actions: {
@@ -207,6 +210,9 @@ const store = new Vuex.Store({
     },
     updateProc (state, options) {
       store.commit('updateProc', options)
+    },
+    updateUserProc (state, options) {
+      store.commit('updateUserProc', options)
     },
     playCurrentUserProcedure () {
       store.state.userProcedures[0].trigger()
