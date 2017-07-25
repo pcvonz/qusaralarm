@@ -1,25 +1,53 @@
 <template>
   <!-- Don't drop "q-app" class -->
-    <div class="list">
-      {{ title }} 
-      <button :class="{ isShown: alarmOff }" v-on:click="stopAlarm">Stop Alarm</button>
-      <clock v-on:updateTime="updateTime"></clock>
-      <alarm v-for="alarm in alarms" v-on:initAlarm="initAlarm" :name="alarm.name" :time="time" :procedures="procedures"></alarm>
-      <p> Alarm set to {{ alarm }} </p>
-      <h3> Current procedures </h3>
-        <user-procedures :procedureObject="userProcedures"></user-procedures>
-        <div class="list-header">
-          Create or add existing procedures
-        </div>
-        <h3> Available Procedures </h3>
-        <procedures :procedureObject="procedures"></procedures>
-        <h3> Create Procedure</h3>
-        <audio-stream></audio-stream>
-        <weather></weather>
-        <habitica></habitica>
-        <h3> Clear Storage </h3>
-        <button v-on:click="clearStorage">Clear Storage</button>
+    <q-layout>
+    <div slot="header">
+      <button v-on:click="addNewAlarm"><i>add</i></button>
+    </div>
+    <div class="layout-view">
+      <div class="list">
+        {{ $route.params.id }}
+        {{ title }} 
+        <button :class="{ isShown: alarmOff }" v-on:click="stopAlarm">Stop Alarm</button>
+        <clock v-on:updateTime="updateTime"></clock>
+        <alarm v-for="alarm in alarms" v-on:initAlarm="initAlarm" :name="alarm.name" :time="time" :procedures="procedures"></alarm>
+        <p> Alarm set to {{ alarm }} </p>
+        <h3> Current procedures </h3>
+          <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
+          <div class="list-header">
+            <button class="primary" @click="$refs.addProcedureModal.open()"> Create or add existing procedures</button>
+          </div>
+      </div>
+    </div>
+      <q-modal slot="navigation" ref="addProcedureModal">
+          <q-tabs :refs="$refs" default-tab="tab-1">
+            <button @click="$refs.addProcedureModal.close()"><i>arrow_back</i></button>
+            <q-tab name="tab-1">
+              Add
+            </q-tab>
+            <q-tab name="tab-2">
+              Create
+            </q-tab>
+          </q-tabs>
+            
+            <div ref="tab-1">
+              <procedures :id="id" :procedureObject="procedures"></procedures>
+            </div>
+            <div ref="tab-2">
+              <audio-stream></audio-stream>
+              <weather></weather>
+              <habitica></habitica>
+              <h3> Clear Storage </h3>
+              <button v-on:click="clearStorage">Clear Storage</button>
+            </div>
+      </q-modal>
+  <div slot="footer">
+    <router-link to="/alarm/0"> <button> <i>alarm</i> </button> </router-link>
+    <router-link to="/alarm/1"> <button> <i>alarm</i> </button> </router-link>
+    <router-link to="/alarm/2"> <button> <i>alarm</i> </button> </router-link>
+    <router-link to="/alarm/3"> <button> <i>alarm</i> </button> </router-link>
   </div>
+  </q-layout>
 </template>
 
 <script>
@@ -38,11 +66,12 @@ export default {
   data () {
     return { title: 'Clock',
       alarm: null,
+      id: this.$route.params.id,
       alarms: [{name: 'Default'}],
       time: null,
       newClockName: null,
       procedures: this.$store.state.procedures,
-      userProcedures: this.$store.state.userProcedures
+      userProcedures: this.$store.state.alarms[this.$route.params.id].procedures
     }
   },
   methods: {
@@ -56,17 +85,27 @@ export default {
       this.alarms.push({name: this.newClockName})
       this.alarmProcedures.procedures[0].trigger()
     },
+    addNewAlarm: function () {
+      console.log('hello')
+    },
     stopAlarm: function () {
       this.$store.commit('alarmOff')
       this.$store.state.userProcedures[0].stop()
     },
     removeUserProcedure: function (index) {
-      this.$store.dispatch('removeUserProcedure', index)
+      this.$store.dispatch('removeUserProcedure', {id: this.id, index: index})
     },
     clearStorage: function () {
       console.log('cleared')
       LocalStorage.clear('procedures')
       LocalStorage.clear('userProcedures')
+    }
+  },
+  watch: {
+    '$route' (to, from) {
+      this.userProcedures = this.$store.state.alarms[this.$route.params.id].procedures
+      this.alarm = this.$store.state.alarms[this.$route.params.id].alarm
+      this.id = this.$route.params.id
     }
   },
   computed: {

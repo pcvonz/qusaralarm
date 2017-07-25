@@ -17,14 +17,15 @@ import Procedure from './Procedure'
 export default {
   name: 'procedures',
   components: { Procedure },
-  props: ['procedureObject'],
+  props: ['procedureObject', 'id'],
   data () {
     return {
     }
   },
   methods: {
     addUserProcedure: function (proc) {
-      this.$store.dispatch('addUserProcedure', proc)
+      console.log(this.id)
+      this.$store.dispatch('addUserProcedure', {procedure: proc, id: this.id})
     },
     removeProcedure: function (index) {
       this.$store.dispatch('removeProcedure', index)

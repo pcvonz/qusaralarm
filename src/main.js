@@ -52,7 +52,6 @@ class HabiticaDailies extends AlarmProcedure {
         }
       })
       let dueDailys = `You have ${dailyList.length} dailies due today: ${dailyList.join(', ')}`
-      console.log(dueDailys)
       if (typeof cordova !== 'undefined') {
         this.speak(dueDailys)
       }
@@ -142,6 +141,12 @@ const store = new Vuex.Store({
     count: null,
     procedures: [],
     userProcedures: [],
+    alarms: {
+      0: {title: 'Default', procedures: [], alarm: '8:00'},
+      1: {title: 'Default', procedures: [], alarm: '8:00'},
+      2: {title: 'Default', procedures: [], alarm: '8:00'},
+      3: {title: 'Default', procedures: [], alarm: '8:00'}
+    },
     alarmOff: true
   },
   mutations: {
@@ -158,13 +163,13 @@ const store = new Vuex.Store({
       state.procedures.push(p)
     },
     addUserProcedure (state, p) {
-      state.userProcedures.push(p)
+      state.alarms[p.id].procedures.push(p.procedure)
     },
     removeProcedure (state, pindex) {
       state.procedures.splice(pindex, 1)
     },
-    removeUserProcedure (state, pindex) {
-      state.userProcedures.splice(pindex, 1)
+    removeUserProcedure (state, p) {
+      state.alarms[p.id].procedures.splice(p.index, 1)
     },
     createStream (state, p) {
       let stream = new AudioStream(p.name, {stream: p.options.stream, timeOut: p.options.timeOut})
@@ -181,6 +186,10 @@ const store = new Vuex.Store({
       state.procedures.push(habitica)
       Quasar.LocalStorage.set('procedures', state.procedures)
     },
+    // TODO: do not include a remove user procedure
+    // instead keep track of the id and index in the function
+    // and go through the list until the index is greater than the
+    // length of the procedures list
     removeFirstUserProcedure (state) {
       state.userProcedures.shift()
     },
@@ -188,7 +197,7 @@ const store = new Vuex.Store({
       state.procedures[options.pindex].options[options.key] = options.value
     },
     updateUserProc (state, options) {
-      state.userProcedures[options.pindex].options[options.key] = options.value
+      state.alarms[options.id].procedures[options.pindex].options[options.key] = options.value
     }
   },
   actions: {
@@ -198,15 +207,15 @@ const store = new Vuex.Store({
     },
     addUserProcedure (state, p) {
       store.commit('addUserProcedure', p)
-      Quasar.LocalStorage.set('userProcedures', store.state.userProcedures)
+      Quasar.LocalStorage.set('alarms', store.state.alarms)
     },
     removeProcedure (state, pindex) {
       store.commit('removeProcedure', pindex)
       Quasar.LocalStorage.set('procedures', store.state.procedures)
     },
-    removeUserProcedure (state, pindex) {
-      store.commit('removeUserProcedure', pindex)
-      Quasar.LocalStorage.set('userProcedures', store.state.userProcedures)
+    removeUserProcedure (state, p) {
+      store.commit('removeUserProcedure', p)
+      Quasar.LocalStorage.set('alarms', store.state.alarms)
     },
     updateProc (state, options) {
       store.commit('updateProc', options)
@@ -235,14 +244,13 @@ store.commit('addProcedure', npr)
 // Init tempProcedures
 let local = Quasar.LocalStorage
 // local.clear('userProcedures')
-console.log(local.get.item('userProcedures'))
-if (local.get.item('userProcedures') !== null && local.get.item('userProcedures') !== 'undefined') {
-  local.get.item('userProcedures').forEach(function (p) {
-    console.log('Loaded user prototype')
-    console.log(p)
-    store.commit('addUserProcedure', assignClass(p))
-  })
-  Quasar.LocalStorage.set('userProcedures', store.state.userProcedures)
+if (local.get.item('alarms') !== null && local.get.item('alarms') !== 'undefined') {
+  var alarms = local.get.item('alarms')
+  for (var index in alarms) {
+    for (var proc of alarms[index].procedures) {
+      store.commit('addUserProcedure', {id: index, procedure: assignClass(proc)})
+    }
+  }
 }
 if (Quasar.LocalStorage.get.item('procedures') != null && local.get.item('procedures') !== 'undefined') {
   Quasar.LocalStorage.get.item('procedures').forEach(function (p) {

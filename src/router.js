@@ -21,7 +21,8 @@ export default new VueRouter({
    */
 
   routes: [
-    { path: '/', component: load('LandingPage') }, // Default
+    { path: '/', redirect: '/alarm/0' }, // Default
+    { path: '/alarm/:id', component: load('LandingPage') }, // Default
     { path: '*', component: load('Error404') } // Not found
   ]
 })
