@@ -11,6 +11,7 @@ import router from './router'
 import Vuex from 'vuex'
 import axios from 'axios'
 import Habitica from 'habitica'
+import moment from 'moment'
 
 class AlarmProcedure {
   constructor (name, options, type) {
@@ -140,25 +141,20 @@ const store = new Vuex.Store({
   state: {
     count: null,
     procedures: [],
-    userProcedures: [],
+    procedureQueue: [],
+    alarmIndex: 0,
+    // Sort based on alarm time?
+    // If it's sorted it needs to be sorted by the time closest
+    // to the current time...
     alarms: {
-      0: {title: 'Default', procedures: [], alarm: '8:00'},
-      1: {title: 'Default', procedures: [], alarm: '8:00'},
-      2: {title: 'Default', procedures: [], alarm: '8:00'},
-      3: {title: 'Default', procedures: [], alarm: '8:00'}
+      0: {title: 'Default', procedures: [], alarm: '8:00', armed: true},
+      1: {title: 'Default', procedures: [], alarm: '8:00', armed: true},
+      2: {title: 'Default', procedures: [], alarm: '8:00', armed: true},
+      3: {title: 'Default', procedures: [], alarm: '8:00', armed: true}
     },
-    alarmOff: true
+    triggered: true
   },
   mutations: {
-    increment (state) {
-      state.count++
-    },
-    alarmOn (state) {
-      state.alarmOff = false
-    },
-    alarmOff (state) {
-      state.alarmOff = false
-    },
     addProcedure (state, p) {
       state.procedures.push(p)
     },
@@ -186,18 +182,44 @@ const store = new Vuex.Store({
       state.procedures.push(habitica)
       Quasar.LocalStorage.set('procedures', state.procedures)
     },
-    // TODO: do not include a remove user procedure
-    // instead keep track of the id and index in the function
-    // and go through the list until the index is greater than the
-    // length of the procedures list
+    // Procedure queue is added to when an
+    // alarm equals the current time.
+    addToProcedureQueue (state, p) {
+      console.log(p)
+      state.procedureQueue = state.procedureQueue.concat(p)
+    },
     removeFirstUserProcedure (state) {
-      state.userProcedures.shift()
+      state.procedureQueue.shift()
     },
     updateProc (state, options) {
       state.procedures[options.pindex].options[options.key] = options.value
     },
+    updateAlarm (state, options) {
+      state.alarms[options.id].alarm = options.time
+    },
+    updateTitle (state, options) {
+      state.alarms[options.id].title = options.title
+    },
     updateUserProc (state, options) {
       state.alarms[options.id].procedures[options.pindex].options[options.key] = options.value
+    },
+    sortProcedureQueue (state, time) {
+      // Eventually will sort alarms by proximity to current time
+      var mom = moment()
+      var timeArrayTwo = state.alarms[0].alarm.split(':')
+      var mom2 = moment().set({'hour': timeArrayTwo[0], 'minute': timeArrayTwo[1]})
+      console.log(mom.diff(mom2, 'hours'))
+      console.log(mom.diff(mom2, 'minutes'))
+    },
+    toggleAlarm (state, options) {
+      store.state.alarms[options.id].armed = options.value
+      console.log(options.value)
+    },
+    updateProcList (state, options) {
+      store.state.alarms[options.id].procedures = options.list
+    },
+    clearProcedureQueue (state) {
+      store.state.procedureQueue = []
     }
   },
   actions: {
@@ -220,18 +242,39 @@ const store = new Vuex.Store({
     updateProc (state, options) {
       store.commit('updateProc', options)
     },
+    updateProcList (state, options) {
+      store.commit('updateProcList', options)
+      Quasar.LocalStorage.set('alarms', store.state.alarms)
+    },
     updateUserProc (state, options) {
       store.commit('updateUserProc', options)
     },
-    playCurrentUserProcedure () {
-      store.state.userProcedures[0].trigger()
+    stopCurrentProcedure (state) {
+      store.state.procedureQueue[0].stop()
+      store.commit('clearProcedureQueue')
     },
-    playNextUserProcedure () {
-      if (store.state.userProcedures.length > 1) {
+    playCurrentUserProcedure (state) {
+      store.state.procedureQueue[0].trigger()
+    },
+    updateAlarm (state, options) {
+      state.commit('updateAlarm', options)
+      console.log(store.state.alarms)
+      Quasar.LocalStorage.set('alarms', store.state.alarms)
+    },
+    updateTitle (state, options) {
+      state.commit('updateTitle', options)
+      Quasar.LocalStorage.set('alarms', store.state.alarms)
+    },
+    toggleAlarm (state, options) {
+      state.commit('toggleAlarm', options)
+      Quasar.LocalStorage.set('alarms', store.state.alarms)
+    },
+    playNextUserProcedure (state, id) {
+      if (store.state.procedureQueue.length > 1) {
         store.commit('removeFirstUserProcedure')
-        store.state.userProcedures[0].trigger()
+        store.state.procedureQueue[0].trigger()
       }
-      else if (store.state.userProcedures.length === 1) {
+      else if (store.state.procedureQueue.length === 1) {
         store.commit('removeFirstUserProcedure')
       }
     }
@@ -250,6 +293,9 @@ if (local.get.item('alarms') !== null && local.get.item('alarms') !== 'undefined
     for (var proc of alarms[index].procedures) {
       store.commit('addUserProcedure', {id: index, procedure: assignClass(proc)})
     }
+    store.commit('updateAlarm', {time: alarms[index].alarm, id: index})
+    store.commit('toggleAlarm', {value: alarms[index].armed, id: index})
+    store.commit('updateTitle', {title: alarms[index].title, id: index})
   }
 }
 if (Quasar.LocalStorage.get.item('procedures') != null && local.get.item('procedures') !== 'undefined') {
@@ -271,5 +317,3 @@ Quasar.start(() => {
     render: h => h(require('./App'))
   })
 })
-
-store.commit('increment')

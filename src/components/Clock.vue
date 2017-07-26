@@ -16,7 +16,7 @@ export default {
   },
   methods: {
     updateTime: function () {
-      this.time = moment().format('HH:mm')
+      this.time = moment().format('HH:mm:ss')
       this.$emit('updateTime', this.time)
     }
   },

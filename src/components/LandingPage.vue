@@ -7,11 +7,14 @@
     <div class="layout-view">
       <div class="list">
         {{ $route.params.id }}
-        {{ title }} 
+        <div v-on:click="changeTitle"> 
+          <input :class="{ isShown: titleShown }" v-on:blue="changeTitle" v-model:title="title" type="text"/>
+          <p :class="{ isShown: !titleShown }"> {{ title }} </p>
+        </div>
         <button :class="{ isShown: alarmOff }" v-on:click="stopAlarm">Stop Alarm</button>
         <clock v-on:updateTime="updateTime"></clock>
-        <alarm v-for="alarm in alarms" v-on:initAlarm="initAlarm" :name="alarm.name" :time="time" :procedures="procedures"></alarm>
-        <p> Alarm set to {{ alarm }} </p>
+        <alarm v-for="alarm in alarms" v-on:initAlarm="initAlarm" :name="alarm.name" :time="time" :id="id"></alarm>
+        <p> Alarm set to {{ formatAlarm }} </p>
         <h3> Current procedures </h3>
           <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
           <div class="list-header">
@@ -59,12 +62,14 @@ import Weather from './Weather'
 import AudioStream from './AudioStream'
 import Habitica from './Habitica'
 import { LocalStorage } from 'quasar'
+import moment from 'moment'
 // import axios from 'axios'
 
 export default {
   components: { Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica },
   data () {
-    return { title: 'Clock',
+    return {
+      titleShown: true,
       alarm: null,
       id: this.$route.params.id,
       alarms: [{name: 'Default'}],
@@ -79,6 +84,7 @@ export default {
       this.time = time
     },
     initAlarm: function (alarm) {
+      console.log(alarm)
       this.alarm = alarm
     },
     addAlarm: function () {
@@ -89,8 +95,7 @@ export default {
       console.log('hello')
     },
     stopAlarm: function () {
-      this.$store.commit('alarmOff')
-      this.$store.state.userProcedures[0].stop()
+      this.$store.dispatch('stopCurrentProcedure')
     },
     removeUserProcedure: function (index) {
       this.$store.dispatch('removeUserProcedure', {id: this.id, index: index})
@@ -98,7 +103,15 @@ export default {
     clearStorage: function () {
       console.log('cleared')
       LocalStorage.clear('procedures')
-      LocalStorage.clear('userProcedures')
+      LocalStorage.clear('alarms')
+    },
+    changeTitle: function (e) {
+      if (e.target.tagName === 'P' || e.target.tagName === 'DIV') {
+        this.titleShown = !this.titleShown
+      }
+      else {
+        e.target.focus()
+      }
     }
   },
   watch: {
@@ -109,6 +122,14 @@ export default {
     }
   },
   computed: {
+    title: {
+      get: function () {
+        return this.$store.state.alarms[this.id].title
+      },
+      set: function (newTitle) {
+        this.$store.dispatch('updateTitle', {id: this.id, title: newTitle})
+      }
+    },
     background: function () {
       if (typeof cordova !== 'undefined') {
         return 'Android'
@@ -119,6 +140,12 @@ export default {
     },
     alarmOff: function () {
       return this.$store.state.alarmOff
+    },
+    formatAlarm: function () {
+      if (this.alarm != null) {
+        var formatTime = this.alarm.split(':')
+        return moment({'hours': formatTime[0], 'minutes': formatTime[1]}).format('h:mm A')
+      }
     }
   },
   beforeMount: function () {
