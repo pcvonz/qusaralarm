@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div id="userProcedures">
     <draggable v-model="procedures">
-      <div v-for="(proc, index) in procedures">
+      <div class="procedure" v-for="(proc, index) in procedures">
         <div class="item item-link" @click="$refs.procedureModal[index].open()"> {{ proc.name }} </div>
         <q-modal ref="procedureModal">
           <procedure :id="id" :proc="proc" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
@@ -46,4 +46,15 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+#userProcedures {
+  display: flex;
+  justify-content: center;
+}
+.procedure {
+  background-color: blue;
+  width: 10em;
+  text-align: center;
+  color: white;
+}
+</style>

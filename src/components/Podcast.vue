@@ -21,7 +21,7 @@
 
 <script>
 export default {
-  name: 'habitica',
+  name: 'podcast',
   props: [],
   data () {
     return {

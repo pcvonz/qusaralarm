@@ -5,6 +5,7 @@
       <q-modal ref="procedureModal">
         <procedure :proc="proc" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
         <button class="item item-link" @click="$refs.procedureModal[index].close()"> CLOSE </button>
+        <button v-on:click="testProcedure(proc)" >Test Alarm</button>
         <button v-on:click="addUserProcedure(proc)" @click="$refs.procedureModal[index].close()">Add this to alarm </button>
         <button v-on:click="removeProcedure(index)" @click="$refs.procedureModal[index].close()">Remove </button>
       </q-modal>
@@ -32,9 +33,13 @@ export default {
     },
     updateProc (e) {
       this.$store.dispatch('updateProc', {pindex: this.pindex, value: e.target.value, index: e.target.dataset.index, key: e.target.dataset.key})
+    },
+    testProcedure (proc) {
+      proc.trigger()
     }
   }
 }
 </script>
 
-<style></style>
+<style>
+</style>

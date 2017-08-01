@@ -1,16 +1,23 @@
 <template>
   <!-- Don't drop "q-app" class -->
-  <div>
+  <div id="alarmSettings">
     {{ name }}
     <input @input="updateAlarm" v-on:keyup.enter="initAlarm" type="time">
     <q-toggle :value="value" @input="alarmToggle"></q-toggle>
+    <div id="days">
+      <label v-for="key in Object.keys(alarms[this.id].days)">
+        <q-checkbox :value="alarms[id].days[key]" @input="updateDay(key)"></q-checkbox>
+        {{ key.slice(0, 2) }}
+      </label>
+    </div>
   </div>
 </template>
 
 <script>
+
 export default {
   name: 'alarm',
-  props: ['time', 'name', 'procedures', 'id'],
+  props: ['day', 'time', 'name', 'procedures', 'id'],
   data () {
     return {
       alarms: this.$store.state.alarms
@@ -22,8 +29,11 @@ export default {
         this.checkAlarm(this.alarms[id])
       }
     },
+    updateDay: function (day) {
+      this.$store.dispatch('updateDay', { id: this.id, day: day })
+    },
     checkAlarm: function (alarm) {
-      if (this.time === alarm.alarm && alarm.armed === true) {
+      if (this.time === alarm.alarm && alarm.armed === true && alarm.days[this.day]) {
         if (typeof cordova !== 'undefined') {
           cordova.plugins.backgroundMode.moveToForeground()
         }
@@ -31,14 +41,14 @@ export default {
         this.$store.dispatch('playCurrentUserProcedure', alarm.procedures)
       }
     },
+    // doesn't actuallyu do anything
     initAlarm: function (e) {
       // this.$store.dispatch('updateAlarm', {time: e.target.value + ':00', id: this.id})
     },
     updateAlarm: function (e) {
-      console.log('hello')
       if (typeof e !== 'undefined') {
         this.$store.dispatch('updateAlarm', {time: e.target.value + ':00', id: this.id})
-        this.$emit('initAlarm', this.alarms[this.id].alarm)
+        this.$emit('updateAlarm', this.alarms[this.id].alarm)
         this.$store.commit('sortProcedureQueue', this.time)
       }
     },
@@ -52,11 +62,19 @@ export default {
     }
   },
   mounted: function () {
-    this.initAlarm()
-    this.iterateAlarms()
-    setInterval(this.iterateAlarms, 1000)
+    // this.initAlarm()
+    // this.iterateAlarms()
+    // setInterval(this.iterateAlarms, 1000)
   }
 }
 </script>
 
-<style></style>
+<style>
+#days {
+  display: flex;
+
+}
+#alarmSettings {
+  background-color: #777487;
+}
+</style>

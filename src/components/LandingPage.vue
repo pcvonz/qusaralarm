@@ -1,21 +1,17 @@
 <template>
   <!-- Don't drop "q-app" class -->
     <q-layout>
-    <div slot="header">
-      <button v-on:click="addNewAlarm"><i>add</i></button>
-    </div>
     <div class="layout-view">
       <div class="list">
-        {{ $route.params.id }}
         <div v-on:click="changeTitle"> 
           <input :class="{ isShown: titleShown }" v-on:blue="changeTitle" v-model:title="title" type="text"/>
           <p :class="{ isShown: !titleShown }"> {{ title }} </p>
         </div>
         <button :class="{ isShown: alarmOff }" v-on:click="stopAlarm">Stop Alarm</button>
-        <clock v-on:updateTime="updateTime"></clock>
-        <alarm v-for="alarm in alarms" v-on:initAlarm="initAlarm" :name="alarm.name" :time="time" :id="id"></alarm>
-        <p> Alarm set to {{ formatAlarm }} </p>
-        <h3> Current procedures </h3>
+        <clock id="clock" v-on:updateTime="updateTime"></clock>
+        <p> Alarm: {{ alarm }} </p>
+        <alarm v-for="alarm in alarms" :name="alarm.name" :day="day" :time="time" :id="id"></alarm>
+        <h5> Current procedures </h5>
           <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
           <div class="list-header">
             <button class="primary" @click="$refs.addProcedureModal.open()"> Create or add existing procedures</button>
@@ -61,38 +57,35 @@ import UserProcedures from './UserProcedures'
 import Weather from './Weather'
 import AudioStream from './AudioStream'
 import Habitica from './Habitica'
+import Podcast from './Podcast'
 import { LocalStorage } from 'quasar'
 import moment from 'moment'
 // import axios from 'axios'
 
 export default {
-  components: { Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica },
+  components: { Podcast, Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica },
   data () {
     return {
       titleShown: true,
-      alarm: null,
       id: this.$route.params.id,
       alarms: [{name: 'Default'}],
       time: null,
+      day: null,
       newClockName: null,
       procedures: this.$store.state.procedures,
       userProcedures: this.$store.state.alarms[this.$route.params.id].procedures
     }
   },
   methods: {
-    updateTime: function (time) {
+    updateTime: function (time, day) {
       this.time = time
-    },
-    initAlarm: function (alarm) {
-      console.log(alarm)
-      this.alarm = alarm
+      this.day = day
     },
     addAlarm: function () {
       this.alarms.push({name: this.newClockName})
       this.alarmProcedures.procedures[0].trigger()
     },
     addNewAlarm: function () {
-      console.log('hello')
     },
     stopAlarm: function () {
       this.$store.dispatch('stopCurrentProcedure')
@@ -146,6 +139,14 @@ export default {
         var formatTime = this.alarm.split(':')
         return moment({'hours': formatTime[0], 'minutes': formatTime[1]}).format('h:mm A')
       }
+    },
+    alarm: {
+      get: function () {
+        let formatTime = this.$store.state.alarms[this.id].alarm.split(':')
+        return moment({'hours': formatTime[0], 'minutes': formatTime[1]}).format('h:mm A')
+      },
+      set: function () {
+      }
     }
   },
   beforeMount: function () {
@@ -160,4 +161,12 @@ export default {
 .isShown {
   display: none;
 }
+
+#clock {
+  display: flex;
+  justify-content: center;
+  font-size: 3em;
+  font-family: "Alte DIN 1451 Mittelschrift";
+}
+
 </style>

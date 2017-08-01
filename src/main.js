@@ -43,6 +43,7 @@ class HabiticaDailies extends AlarmProcedure {
       id: options.uidKey,
       apiToken: options.apiKey
     })
+    this.tag = options.tag
   }
   trigger () {
     this.api.get('/tasks/user?type=dailys').then((res) => {
@@ -57,6 +58,28 @@ class HabiticaDailies extends AlarmProcedure {
         this.speak(dueDailys)
       }
     })
+    // Get todo tasks by tag name (needs to get ID first then todo by tagid
+    if (this.tag) {
+      this.api.get('/tags').then(function (res) {
+        res.data.forEach(function (d) {
+          if (d['name'] === this.tag) {
+            let tagId = d['id']
+            this.api.get('/tasks/user').then((res) => {
+              let taskList = []
+              res.data.forEach(function (d) {
+                if (d.tags.indexOf(tagId) > -1 && d.type === 'todo') {
+                  taskList.push(d.text)
+                }
+              })
+              let taskString = `You have ${taskList.length} tasks due today: ${taskList.join(', ')}`
+              if (typeof cordova !== 'undefined') {
+                this.speak(taskString)
+              }
+            })
+          }
+        }.bind(this))
+      }.bind(this))
+    }
   }
 }
 
@@ -147,10 +170,10 @@ const store = new Vuex.Store({
     // If it's sorted it needs to be sorted by the time closest
     // to the current time...
     alarms: {
-      0: {title: 'Default', procedures: [], alarm: '8:00', armed: true},
-      1: {title: 'Default', procedures: [], alarm: '8:00', armed: true},
-      2: {title: 'Default', procedures: [], alarm: '8:00', armed: true},
-      3: {title: 'Default', procedures: [], alarm: '8:00', armed: true}
+      0: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: false, Friday: true, Saturday: true, Sunday: true }, armed: true},
+      1: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true},
+      2: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true},
+      3: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true}
     },
     triggered: true
   },
@@ -220,9 +243,17 @@ const store = new Vuex.Store({
     },
     clearProcedureQueue (state) {
       store.state.procedureQueue = []
+    },
+    updateDay (state, options) {
+      state.alarms[options.id].days[options.day] = options.value
     }
   },
   actions: {
+    updateDay (state, options) {
+      options = {id: options.id, day: options.day, value: !store.state.alarms[options.id].days[options.day]}
+      store.commit('updateDay', options)
+      Quasar.LocalStorage.set('alarms', store.state.alarms)
+    },
     addProcedure (state, p) {
       store.commit('addProcedure', p)
       Quasar.LocalStorage.set('procedures', store.state.procedures)
@@ -277,6 +308,10 @@ const store = new Vuex.Store({
       else if (store.state.procedureQueue.length === 1) {
         store.commit('removeFirstUserProcedure')
       }
+    },
+    testHabitica (options) {
+      let test = new HabiticaDailies(options.name, options)
+      test.trigger()
     }
   }
 })
@@ -292,6 +327,10 @@ if (local.get.item('alarms') !== null && local.get.item('alarms') !== 'undefined
   for (var index in alarms) {
     for (var proc of alarms[index].procedures) {
       store.commit('addUserProcedure', {id: index, procedure: assignClass(proc)})
+    }
+    // TODO: Combine these two for loops
+    for (var day of Object.keys(alarms[index].days)) {
+      store.commit('updateDay', {day: day, id: index, value: alarms[index].days[day]})
     }
     store.commit('updateAlarm', {time: alarms[index].alarm, id: index})
     store.commit('toggleAlarm', {value: alarms[index].armed, id: index})
