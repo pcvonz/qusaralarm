@@ -70,6 +70,7 @@ export default {
         this.$store.commit('sortProcedureQueue', this.time)
         console.log('updating alarm')
         if (typeof cordova !== 'undefined') {
+          // TODO: Move background plugin defaults to separate function
           cordova.plugins.notification.local.schedule({
             id: this.id,
             every: 'day',

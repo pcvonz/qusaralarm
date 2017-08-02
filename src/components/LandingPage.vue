@@ -10,7 +10,7 @@
         <button :class="{ isShown: alarmOff }" v-on:click="stopAlarm">Stop Alarm</button>
         <clock id="clock" v-on:updateTime="updateTime"></clock>
         <p> Alarm: {{ alarm }} </p>
-        <alarm v-for="alarm in alarms" :name="alarm.name" :day="day" :time="time" :id="id"></alarm>
+        <alarm v-for="alarm in alarms" v-on:updateAlarm="updateAlarm" :name="alarm.name" :day="day" :time="time" :id="id"></alarm>
         <p> Alarm goes off in {{ timeUntil }} hours </p>
         <h5> Current procedures </h5>
           <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
@@ -81,6 +81,14 @@ export default {
     updateTime: function (time, day) {
       this.time = time
       this.day = day
+    },
+    updateAlarm: function () {
+      if (typeof cordova !== 'undefined') {
+        cordova.plugins.backgroundMode.configure({
+          title: 'Alarm clock',
+          text: this.timeUntil
+        })
+      }
     },
     addAlarm: function () {
       this.alarms.push({name: this.newClockName})
@@ -156,7 +164,6 @@ export default {
       if (notify.diff(moment()) < 0) {
         notify = notify.add(1, 'day')
       }
-      // return moment().diff(notify, 'hours')
       let hours = notify.diff(moment(), 'hours')
       let minutes = moment(notify.diff(moment())).minutes()
       return `${hours} hours and  ${minutes} minutes`
@@ -171,6 +178,10 @@ export default {
         notify.add(1, 'day')
       }
       // set background mode
+      cordova.plugins.backgroundMode.setDefaults({
+        title: 'Alarm clock',
+        text: `Time until next alarm: ${this.timeUntil} hours`
+      })
       cordova.plugins.backgroundMode.enable()
       cordova.plugins.backgroundMode.setDefaults({
         title: 'Alarm clock',
@@ -183,7 +194,6 @@ export default {
       })
       cordova.plugins.notification.local.on('trigger', (notification) => {
         console.log('trigger')
-        cordova.plugins.backgroundMode.unlock()
         let alarm = this.$store.state.alarms[notification.id]
         if (alarm.armed === true && alarm.days[this.day]) {
           this.$store.commit('addToProcedureQueue', alarm.procedures)
