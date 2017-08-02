@@ -11,6 +11,7 @@
         <clock id="clock" v-on:updateTime="updateTime"></clock>
         <p> Alarm: {{ alarm }} </p>
         <alarm v-for="alarm in alarms" :name="alarm.name" :day="day" :time="time" :id="id"></alarm>
+        <p> Alarm goes off in {{ timeUntil }} hours </p>
         <h5> Current procedures </h5>
           <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
           <div class="list-header">
@@ -147,11 +148,53 @@ export default {
       },
       set: function () {
       }
+    },
+    timeUntil: function () {
+      let alarm = this.$store.state.alarms[this.id].alarm.split(':')
+      // If the alarm is in the past, add a day
+      let notify = moment().hours(alarm[0], 'hours').minutes(alarm[1], 'minutes')
+      if (notify.diff(moment()) < 0) {
+        notify = notify.add(1, 'day')
+      }
+      // return moment().diff(notify, 'hours')
+      let hours = notify.diff(moment(), 'hours')
+      let minutes = moment(notify.diff(moment())).minutes()
+      return `${hours} hours and  ${minutes} minutes`
     }
   },
   beforeMount: function () {
     if (typeof cordova !== 'undefined') {
+      let alarmTime = this.$store.state.alarms[this.id].alarm.split(':')
+      // If the alarm is in the past, add a day
+      let notify = moment().hours(alarmTime[0]).minutes(alarmTime[1])
+      if (moment().diff(notify) < 0) {
+        notify.add(1, 'day')
+      }
+      // set background mode
       cordova.plugins.backgroundMode.enable()
+      cordova.plugins.backgroundMode.setDefaults({
+        title: 'Alarm clock',
+        text: this.timeUntil
+      })
+      cordova.plugins.notification.local.schedule({
+        id: this.id,
+        every: 'day',
+        at: notify.toDate()
+      })
+      cordova.plugins.notification.local.on('trigger', (notification) => {
+        console.log('trigger')
+        cordova.plugins.backgroundMode.unlock()
+        let alarm = this.$store.state.alarms[notification.id]
+        if (alarm.armed === true && alarm.days[this.day]) {
+          this.$store.commit('addToProcedureQueue', alarm.procedures)
+          this.$store.dispatch('playCurrentUserProcedure')
+        }
+        else {
+          cordova.plugins.notification.local.cancel(this.id, () => {
+            console.log('canceled')
+          })
+        }
+      })
     }
   }
 }

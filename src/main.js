@@ -11,7 +11,7 @@ import router from './router'
 import Vuex from 'vuex'
 import axios from 'axios'
 import Habitica from 'habitica'
-import moment from 'moment'
+// import moment from 'moment'
 
 class AlarmProcedure {
   constructor (name, options, type) {
@@ -208,7 +208,6 @@ const store = new Vuex.Store({
     // Procedure queue is added to when an
     // alarm equals the current time.
     addToProcedureQueue (state, p) {
-      console.log(p)
       state.procedureQueue = state.procedureQueue.concat(p)
     },
     removeFirstUserProcedure (state) {
@@ -228,15 +227,12 @@ const store = new Vuex.Store({
     },
     sortProcedureQueue (state, time) {
       // Eventually will sort alarms by proximity to current time
-      var mom = moment()
-      var timeArrayTwo = state.alarms[0].alarm.split(':')
-      var mom2 = moment().set({'hour': timeArrayTwo[0], 'minute': timeArrayTwo[1]})
-      console.log(mom.diff(mom2, 'hours'))
-      console.log(mom.diff(mom2, 'minutes'))
+     //  var mom = moment()
+     //  var timeArrayTwo = state.alarms[0].alarm.split(':')
+     //  var mom2 = moment().set({'hour': timeArrayTwo[0], 'minute': timeArrayTwo[1]})
     },
     toggleAlarm (state, options) {
       store.state.alarms[options.id].armed = options.value
-      console.log(options.value)
     },
     updateProcList (state, options) {
       store.state.alarms[options.id].procedures = options.list
@@ -285,11 +281,12 @@ const store = new Vuex.Store({
       store.commit('clearProcedureQueue')
     },
     playCurrentUserProcedure (state) {
-      store.state.procedureQueue[0].trigger()
+      if (store.state.procedureQueue.length > 0) {
+        store.state.procedureQueue[0].trigger()
+      }
     },
     updateAlarm (state, options) {
       state.commit('updateAlarm', options)
-      console.log(store.state.alarms)
       Quasar.LocalStorage.set('alarms', store.state.alarms)
     },
     updateTitle (state, options) {
