@@ -1,16 +1,18 @@
 <template>
   <!-- Don't drop "q-app" class -->
   <div id="alarmSettings">
-    {{ name }}
     <input @input="updateAlarm" v-on:keyup.enter="initAlarm" type="time">
     <q-toggle :value="value" @input="alarmToggle"></q-toggle>
     <div id="days">
-      <label v-for="key in Object.keys(alarms[this.id].days)">
-        <q-checkbox :value="alarms[id].days[key]" @input="updateDay(key)"></q-checkbox>
-        {{ key.slice(0, 2) }}
+      <label class="dayRadio" v-for="key in Object.keys(alarms[this.id].days)">
+        <!--q-checkbox :value="alarms[id].days[key]" @input="updateDay(key)"></q-checkbox-->
+        <input :value="alarms[id].days[key]" @input="updateDay(key)" type="checkbox"> </input>
+        <div>         
+          <p>{{ key.slice(0, 2) }}</p>
+        </div>
+
       </label>
     </div>
-    <button v-on:click="updateDebug">Debug </button>
   </div>
 </template>
 
@@ -41,22 +43,12 @@ export default {
         }
         this.$store.commit('addToProcedureQueue', alarm.procedures)
         this.$store.dispatch('playCurrentUserProcedure', alarm.procedures)
+        this.$emit('triggerAlarm')
       }
     },
     // doesn't actually do anything
     initAlarm: function (e) {
       // this.$store.dispatch('updateAlarm', {time: e.target.value + ':00', id: this.id})
-    },
-    updateDebug: function () {
-      let alarmTime = this.$store.state.alarms[this.id].alarm.split(':')
-      let notify = moment().add(5, 'seconds').hours(alarmTime[0]).minutes(alarmTime[1]).seconds('00')
-      if (typeof cordova !== 'undefined') {
-        cordova.plugins.notification.local.schedule({
-          id: this.id,
-          every: 'day',
-          at: notify.toDate()
-        })
-      }
     },
     updateAlarm: function (e) {
       if (typeof e !== 'undefined') {
@@ -100,12 +92,35 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+.dayRadio {
+  input {
+    display: none;
+  }
+  input:checked + div {
+    background-color: #478cbf;
+    p {
+      color: white;
+    }
+  }
+  div {
+    background-color: white;
+    width: 30px;
+    height: 30px;
+    margin: .2em;
+    border: 2px solid white;
+    display: flex;
+    justify-content: center;
+    p {
+      color: #478cbf;
+    }
+    transition: background-color .2s, color .2s
+  }
+}
 #days {
   display: flex;
-
-}
-#alarmSettings {
-  background-color: #777487;
+  padding: .3em 0 .3em 0;
+  background-color: #478CBF;
+  justify-content: center;
 }
 </style>

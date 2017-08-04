@@ -1,7 +1,7 @@
 <template>
   <!-- Don't drop "q-app" class -->
-  <div id="q-app">
-    {{ time }}
+  <div>
+    <h1 id="time"> {{ time }} </h1>
   </div>
 </template>
 
@@ -29,4 +29,8 @@ export default {
 }
 </script>
 
-<style></style>
+<style lang="scss">
+#time {
+ color: white;
+}
+</style>

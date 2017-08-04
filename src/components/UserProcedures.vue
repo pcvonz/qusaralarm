@@ -2,7 +2,7 @@
   <div id="userProcedures">
     <draggable v-model="procedures">
       <div class="procedure" v-for="(proc, index) in procedures">
-        <div class="item item-link" @click="$refs.procedureModal[index].open()"> {{ proc.name }} </div>
+        <div class="item item-link" @click="$refs.procedureModal[index].open()"> <p>{{ proc.name }} </p></div>
         <q-modal ref="procedureModal">
           <procedure :id="id" :proc="proc" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
           <button class="item item-link" v-on:click="removeUserProcedure(index)" @click="$refs.procedureModal[index].close()"> remove </button>
@@ -46,15 +46,26 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 #userProcedures {
   display: flex;
   justify-content: center;
+
 }
 .procedure {
-  background-color: blue;
+  background-color: white;
   width: 10em;
   text-align: center;
-  color: white;
+  .item {
+    margin: .3em 0 .3em 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    p {
+      color: black;
+      padding: 0;
+      margin: 0;
+    }
+  }
 }
 </style>

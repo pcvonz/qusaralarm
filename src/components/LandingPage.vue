@@ -2,22 +2,22 @@
   <!-- Don't drop "q-app" class -->
     <q-layout>
     <div class="layout-view">
-      <div class="list">
-        <div v-on:click="changeTitle"> 
-          <input :class="{ isShown: titleShown }" v-on:blue="changeTitle" v-model:title="title" type="text"/>
-          <p :class="{ isShown: !titleShown }"> {{ title }} </p>
-        </div>
-        <button :class="{ isShown: alarmOff }" v-on:click="stopAlarm">Stop Alarm</button>
-        <clock id="clock" v-on:updateTime="updateTime"></clock>
-        <p> Alarm: {{ alarm }} </p>
-        <alarm v-for="alarm in alarms" v-on:updateAlarm="updateAlarm" :name="alarm.name" :day="day" :time="time" :id="id"></alarm>
-        <p> Alarm goes off in {{ timeUntil }} hours </p>
-        <h5> Current procedures </h5>
-          <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
-          <div class="list-header">
-            <button class="primary" @click="$refs.addProcedureModal.open()"> Create or add existing procedures</button>
+        <div class="main">
+          <div v-on:click="changeTitle"> 
+            <input :class="{ isShown: titleShown }" v-on:blue="changeTitle" v-model:title="title" type="text"/>
+            <p :class="{ isShown: !titleShown }"> {{ title }} </p>
           </div>
-      </div>
+          <div class="hide" :class="{ alarmModal: alarmShown}">
+            <button v-on:click="stopAlarm">Stop Alarm</button>
+          </div>
+          <clock id="clock" v-on:updateTime="updateTime"></clock>
+          <p> Alarm: {{ alarm }} </p>
+          <alarm v-for="alarm in alarms" v-on:triggerAlarm="triggerAlarm" v-on:updateAlarm="updateAlarm" :name="alarm.name" :day="day" :time="time" :id="id"></alarm>
+        </div>
+          <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
+          <div class="addButton"@click="$refs.addProcedureModal.open()">
+            <p> Add </p> 
+          </div>
     </div>
       <q-modal slot="navigation" ref="addProcedureModal">
           <q-tabs :refs="$refs" default-tab="tab-1">
@@ -59,7 +59,7 @@ import Weather from './Weather'
 import AudioStream from './AudioStream'
 import Habitica from './Habitica'
 import Podcast from './Podcast'
-import { LocalStorage } from 'quasar'
+import { LocalStorage, Toast } from 'quasar'
 import moment from 'moment'
 // import axios from 'axios'
 
@@ -74,10 +74,14 @@ export default {
       day: null,
       newClockName: null,
       procedures: this.$store.state.procedures,
-      userProcedures: this.$store.state.alarms[this.$route.params.id].procedures
+      userProcedures: this.$store.state.alarms[this.$route.params.id].procedures,
+      alarmShown: false
     }
   },
   methods: {
+    triggerAlarm: function () {
+      this.alarmShown = true
+    },
     updateTime: function (time, day) {
       this.time = time
       this.day = day
@@ -89,15 +93,20 @@ export default {
           text: this.timeUntil
         })
       }
+      Toast.create(this.timeUntil)
     },
     addAlarm: function () {
       this.alarms.push({name: this.newClockName})
       this.alarmProcedures.procedures[0].trigger()
     },
-    addNewAlarm: function () {
-    },
     stopAlarm: function () {
-      this.$store.dispatch('stopCurrentProcedure')
+      try {
+        this.$store.dispatch('stopCurrentProcedure')
+      }
+      catch (e) {
+        console.log('stop function doesnt exist')
+      }
+      this.alarmShown = false
     },
     removeUserProcedure: function (index) {
       this.$store.dispatch('removeUserProcedure', {id: this.id, index: index})
@@ -139,9 +148,6 @@ export default {
       else {
         return 'not android'
       }
-    },
-    alarmOff: function () {
-      return this.$store.state.alarmOff
     },
     formatAlarm: function () {
       if (this.alarm != null) {
@@ -192,27 +198,48 @@ export default {
         every: 'day',
         at: notify.toDate()
       })
-      cordova.plugins.notification.local.on('trigger', (notification) => {
-        console.log('trigger')
-        let alarm = this.$store.state.alarms[notification.id]
-        if (alarm.armed === true && alarm.days[this.day]) {
-          this.$store.commit('addToProcedureQueue', alarm.procedures)
-          this.$store.dispatch('playCurrentUserProcedure')
-        }
-        else {
-          cordova.plugins.notification.local.cancel(this.id, () => {
-            console.log('canceled')
-          })
-        }
-      })
     }
   }
 }
 </script>
 
-<style>
+<style lang="scss">
+$primary: #499bca;
+$secondary: #4fc0e5;
+$tertiary: #555;
+
+$neutral: #E0E1E2;
+$positive: #21BA45;
+$negative: #DB2828;
+$info: #31CCEC;
+$warning: #F2C037;
+
+$ligh: #f4f4f4;
+$dark: #333;
+$faded: #777;
+
+$text-color: lighten(black, 17%);
+$background-color: white;
+
+$link-color: lighten($primary, 25%);
+$link-color-active: $primary;
+
+p {
+  color: white;
+}
+
 .isShown {
+  display: none !important;
+  background-color: rgba(239, 103, 67, 0);
+  transition: background-color .2s;
+}
+
+.hide {
   display: none;
+}
+
+.main {
+  background: linear-gradient(to bottom, #4ebce2 0%,#499bca 100%);
 }
 
 #clock {
@@ -222,4 +249,42 @@ export default {
   font-family: "Alte DIN 1451 Mittelschrift";
 }
 
+.alarmModal {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  background-color: rgba(239, 103, 67, 0.81);
+  color: white;
+  z-index: 10;
+  button {
+    font-size: 1.5em;
+  }
+  transition: background-color .2s, display .2s;
+}
+
+.addButton {
+  width: 160px;
+  height: 48px;
+  border: 4px solid white;
+  margin: 0 auto;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  transition: border .2s;
+  p {
+    margin: 0;
+    padding: 0;
+    height: auto;
+  }
+}
+.addButton:hover {
+  border: 4px solid #e1e1e1;
+}
+html {
+  background-color: #4A9FCD;
+}
 </style>
