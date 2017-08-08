@@ -1,8 +1,11 @@
 <template>
   <!-- Don't drop "q-app" class -->
   <div id="alarmSettings">
-    <input @input="updateAlarm" v-on:keyup.enter="initAlarm" type="time">
-    <q-toggle :value="value" @input="alarmToggle"></q-toggle>
+    <div id="setAlarm">
+      <alarm-hide v-on:updateAlarm="updateAlarm"  :text="alarms[id].alarm">
+      </alarm-hide>
+      <q-toggle :value="value" @input="alarmToggle"></q-toggle>
+    </div>
     <div id="days">
       <label class="dayRadio" v-for="key in Object.keys(alarms[this.id].days)">
         <!--q-checkbox :value="alarms[id].days[key]" @input="updateDay(key)"></q-checkbox-->
@@ -18,9 +21,11 @@
 
 <script>
 import moment from 'moment'
+import AlarmHide from './AlarmHide'
 export default {
   name: 'alarm',
   props: ['day', 'time', 'name', 'procedures', 'id'],
+  components: { AlarmHide },
   data () {
     return {
       alarms: this.$store.state.alarms
@@ -122,5 +127,15 @@ export default {
   padding: .3em 0 .3em 0;
   background-color: #478CBF;
   justify-content: center;
+}
+.q-toggle input:checked + div::after {
+  background: #ca4949;
+}
+#setAlarm {
+  display: flex;
+  justify-content: center;
+  &>* {
+    margin: 0 .5em 0 .5em;
+  }
 }
 </style>

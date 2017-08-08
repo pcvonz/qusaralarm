@@ -22,7 +22,7 @@ export default new VueRouter({
 
   routes: [
     { path: '/', redirect: '/alarm/0' }, // Default
-    { path: '/alarm/:id', component: load('LandingPage') }, // Default
+    { path: '/alarm/:id', component: load('LandingPage'), meta: { transition: 'slide' } }, // Default
     { path: '*', component: load('Error404') } // Not found
   ]
 })

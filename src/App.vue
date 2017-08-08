@@ -1,7 +1,9 @@
 <template>
   <!-- Don't drop "q-app" class -->
   <div id="q-app">
-    <router-view class="layout-view"></router-view>
+    <transition name="slide" mode="out-in">
+      <router-view></router-view>
+    </transition>
   </div>
 </template>
 
@@ -9,7 +11,37 @@
 /*
  * Root component
  */
-export default {}
+export default {
+  data () {
+    return {
+    }
+  },
+  watch: {
+    '$route' (to, from) {
+      const toId = to.params.id
+      const fromId = from.params.id
+      this.slide = toId < fromId ? this.slideLeft(to) : this.slideRight(from)
+    }
+  },
+  methods: {
+    slideLeft (to) {
+      console.log(to)
+    },
+    slideRight (from) {
+      console.log('right')
+    }
+  }
+}
 </script>
 
-<style></style>
+<style>
+.enter-enter-active, .enter-leave-active {
+  transition: opacity .3s ease;
+}
+
+.enter-enter, .enter-leave-to {
+  opacity: 0;
+}
+
+
+</style>

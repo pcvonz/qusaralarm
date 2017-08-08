@@ -4,14 +4,14 @@
     <div class="layout-view">
         <div class="main">
           <div v-on:click="changeTitle"> 
-            <input :class="{ isShown: titleShown }" v-on:blue="changeTitle" v-model:title="title" type="text"/>
+            <input :class="{ isShown: titleShown }" v-on:blur="changeTitle" v-model:title="title" type="text"/>
             <p :class="{ isShown: !titleShown }"> {{ title }} </p>
           </div>
+          <input-hide text="hello" > </input-hide>
           <div class="hide" :class="{ alarmModal: alarmShown}">
             <button v-on:click="stopAlarm">Stop Alarm</button>
           </div>
           <clock id="clock" v-on:updateTime="updateTime"></clock>
-          <p> Alarm: {{ alarm }} </p>
           <alarm v-for="alarm in alarms" v-on:triggerAlarm="triggerAlarm" v-on:updateAlarm="updateAlarm" :name="alarm.name" :day="day" :time="time" :id="id"></alarm>
         </div>
           <user-procedures :id="id" :procedureObject="userProcedures"></user-procedures>
@@ -33,7 +33,7 @@
             <div ref="tab-1">
               <procedures :id="id" :procedureObject="procedures"></procedures>
             </div>
-            <div ref="tab-2">
+            <div ref="tab-2">:class="" 
               <audio-stream></audio-stream>
               <weather></weather>
               <habitica></habitica>
@@ -42,10 +42,10 @@
             </div>
       </q-modal>
   <div slot="footer">
-    <router-link to="/alarm/0"> <button> <i>alarm</i> </button> </router-link>
-    <router-link to="/alarm/1"> <button> <i>alarm</i> </button> </router-link>
-    <router-link to="/alarm/2"> <button> <i>alarm</i> </button> </router-link>
-    <router-link to="/alarm/3"> <button> <i>alarm</i> </button> </router-link>
+    <router-link to="/alarm/0"> <button> <div class="circle"> </div> </button> </router-link>
+    <router-link to="/alarm/1"> <button> <div class="circle"> </div> </button> </router-link>
+    <router-link to="/alarm/2"> <button> <div class="circle"> </div> </button> </router-link>
+    <router-link to="/alarm/3"> <button> <div class="circle"> </div> </button> </router-link>
   </div>
   </q-layout>
 </template>
@@ -59,12 +59,13 @@ import Weather from './Weather'
 import AudioStream from './AudioStream'
 import Habitica from './Habitica'
 import Podcast from './Podcast'
+import InputHide from './InputHide'
 import { LocalStorage, Toast } from 'quasar'
 import moment from 'moment'
 // import axios from 'axios'
 
 export default {
-  components: { Podcast, Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica },
+  components: { InputHide, Podcast, Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica },
   data () {
     return {
       titleShown: true,
@@ -286,5 +287,14 @@ p {
 }
 html {
   background-color: #4A9FCD;
+}
+#circle-selected {
+  background-color: #ca4949;
+}
+.circle {
+  width: 12px;
+  height: 12px;
+  border-radius:100%;
+  background-color: white;
 }
 </style>

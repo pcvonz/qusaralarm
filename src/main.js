@@ -316,6 +316,15 @@ const store = new Vuex.Store({
 store.commit('addProcedure', weather)
 store.commit('addProcedure', npr)
 
+// Custom directive for autofocus on load
+
+Vue.directive('focus', {
+  inserted: function (el) {
+    el.focus()
+    el.click()
+  }
+})
+
 // Init tempProcedures
 let local = Quasar.LocalStorage
 // local.clear('userProcedures')
