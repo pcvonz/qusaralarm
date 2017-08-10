@@ -42,10 +42,10 @@
             </div>
       </q-modal>
   <div slot="footer">
-    <router-link to="/alarm/0"> <button> <div class="circle"> </div> </button> </router-link>
-    <router-link to="/alarm/1"> <button> <div class="circle"> </div> </button> </router-link>
-    <router-link to="/alarm/2"> <button> <div class="circle"> </div> </button> </router-link>
-    <router-link to="/alarm/3"> <button> <div class="circle"> </div> </button> </router-link>
+    <router-link to="/alarm/0"> <button> <div :class="footerClass(0)"> </div> </button> </router-link>
+    <router-link to="/alarm/1"> <button> <div :class="footerClass(1)"> </div> </button> </router-link>
+    <router-link to="/alarm/2"> <button> <div :class="footerClass(2)"> </div> </button> </router-link>
+    <router-link to="/alarm/3"> <button> <div :class="footerClass(3)"> </div> </button> </router-link>
   </div>
   </q-layout>
 </template>
@@ -123,6 +123,14 @@ export default {
       }
       else {
         e.target.focus()
+      }
+    },
+    footerClass: function (e) {
+      if (e === parseInt(this.id)) {
+        return 'circleSelected'
+      }
+      else {
+        return 'circle'
       }
     }
   },
@@ -288,13 +296,17 @@ p {
 html {
   background-color: #4A9FCD;
 }
-#circle-selected {
-  background-color: #ca4949;
+.circleSelected {
+  width: 12px;
+  height: 12px;
+  border-radius:100%;
+  border: 3px solid white;
+  background-color: white;
 }
 .circle {
   width: 12px;
   height: 12px;
   border-radius:100%;
-  background-color: white;
+  border: 2px solid white;
 }
 </style>

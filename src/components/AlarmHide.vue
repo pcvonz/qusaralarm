@@ -2,13 +2,15 @@
   <!-- Don't drop "q-app" class -->
   <div>
     <div v-on:click="changeText"> 
-      <input v-focus v-if="!textShown" @input="updateAlarm" v-on:blur="updateAlarm" type="time" autofocus/>
+      <q-datetime v-focus v-on:close="updateAlarm" v-if="!textShown" type="time" :value="time" v-model:time="time">
+      </q-datetime>
       <p v-if="textShown"> {{ text }} </p>
     </div>
   </div>
 </template>
 
 <script>
+import moment from 'moment'
 export default {
   name: 'alarm-hide',
   props: [ 'text' ],
@@ -19,19 +21,31 @@ export default {
   },
   methods: {
     changeText: function (e) {
-      if (e.target.tagName === 'P' || e.target.tagName === 'DIV') {
+      if (e.target.tagName === 'P') {
         this.textShown = !this.textShown
-      }
-      else {
-        e.target.focus()
       }
     },
     updateAlarm: function (e) {
-      this.$emit('updateAlarm', e)
+      console.log('blur')
       this.textShown = !this.textShown
     }
   },
   computed: {
+    time: {
+      get: function () {
+        let formatTime = this.text.split(':')
+        let date = moment({'hours': formatTime[0], 'minutes': formatTime[1]})
+        console.log(date)
+        return date.format()
+      },
+      set: function (time) {
+        let formatTime = moment(time)
+        console.log('formatTime')
+        formatTime = formatTime.hour() + ':' + formatTime.minute()
+        this.textShown = !this.textShown
+        this.$emit('updateAlarm', formatTime)
+      }
+    }
   },
   mounted: function () {
   }

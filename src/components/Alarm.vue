@@ -57,7 +57,7 @@ export default {
     },
     updateAlarm: function (e) {
       if (typeof e !== 'undefined') {
-        this.$store.dispatch('updateAlarm', {time: e.target.value + ':00', id: this.id})
+        this.$store.dispatch('updateAlarm', {time: e + ':00', id: this.id})
         let alarmTime = this.$store.state.alarms[this.id].alarm.split(':')
         let notify = moment().hours(alarmTime[0]).minutes(alarmTime[1]).seconds('00')
         if (moment().diff(notify) < 0) {

@@ -319,9 +319,8 @@ store.commit('addProcedure', npr)
 // Custom directive for autofocus on load
 
 Vue.directive('focus', {
-  inserted: function (el) {
-    el.focus()
-    el.click()
+  inserted: function (el, binding, vnode) {
+    setTimeout(function () { el.click() }, 1)
   }
 })
 
