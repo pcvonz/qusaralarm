@@ -57,7 +57,7 @@ export default {
   width: 10em;
   text-align: center;
   .item {
-    margin: .3em 0 .3em 0;
+    margin: .3em 0 0 0;
     display: flex;
     justify-content: center;
     align-items: center;

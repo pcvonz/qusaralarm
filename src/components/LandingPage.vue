@@ -279,7 +279,7 @@ p {
   width: 160px;
   height: 48px;
   border: 4px solid white;
-  margin: 0 auto;
+  margin: .4em auto;
   cursor: pointer;
   display: flex;
   justify-content: center;

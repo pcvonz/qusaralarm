@@ -1,10 +1,9 @@
 <template>
   <!-- Don't drop "q-app" class -->
   <div>
-    <div v-on:click="changeText"> 
-      <q-datetime v-focus v-on:close="updateAlarm" v-if="!textShown" type="time" :value="time" v-model:time="time">
+    <div> 
+      <q-datetime type="time" :value="time" v-model:time="time">
       </q-datetime>
-      <p v-if="textShown"> {{ text }} </p>
     </div>
   </div>
 </template>
@@ -16,19 +15,9 @@ export default {
   props: [ 'text' ],
   data () {
     return {
-      textShown: true
     }
   },
   methods: {
-    changeText: function (e) {
-      if (e.target.tagName === 'P') {
-        this.textShown = !this.textShown
-      }
-    },
-    updateAlarm: function (e) {
-      console.log('blur')
-      this.textShown = !this.textShown
-    }
   },
   computed: {
     time: {
@@ -53,9 +42,16 @@ export default {
 </script>
 
 <style lang="scss">
-  .isShown {
-    display: none !important;
-    background-color: rgba(239, 103, 67, 0);
-    transition: background-color .2s;
-  }
+.q-picker-textfield.active .q-picker-textfield-value {
+  color: white;
+  text-align: center;
+}
+
+.q-picker-textfield::before{
+  
+}
+
+.q-picker-textfield::after {
+  display: none;
+}
 </style>
