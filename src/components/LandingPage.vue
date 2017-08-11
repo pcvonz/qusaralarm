@@ -3,11 +3,7 @@
     <q-layout>
     <div class="layout-view">
         <div class="main">
-          <div v-on:click="changeTitle"> 
-            <input :class="{ isShown: titleShown }" v-on:blur="changeTitle" v-model:title="title" type="text"/>
-            <p :class="{ isShown: !titleShown }"> {{ title }} </p>
-          </div>
-          <input-hide text="hello" > </input-hide>
+          <input-hide v-focus :text="title" v-on:changeText="changeTitle"> </input-hide>
           <div class="hide" :class="{ alarmModal: alarmShown}">
             <button v-on:click="stopAlarm">Stop Alarm</button>
           </div>

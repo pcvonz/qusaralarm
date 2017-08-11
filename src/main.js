@@ -269,6 +269,7 @@ const store = new Vuex.Store({
       state.procedureQueue.shift()
     },
     updateProc (state, options) {
+      console.log(options)
       state.procedures[options.pindex].options[options.key] = options.value
     },
     updateAlarm (state, options) {
@@ -376,6 +377,7 @@ store.commit('addProcedure', fluid)
 
 Vue.directive('focus', {
   inserted: function (el, binding, vnode) {
+    el.focus()
     setTimeout(function () { el.click() }, 1)
   }
 })

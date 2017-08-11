@@ -4,7 +4,8 @@
       <div class="procedure" v-for="(proc, index) in procedures">
         <div class="item item-link" @click="$refs.procedureModal[index].open()"> <p>{{ proc.name }} </p></div>
         <q-modal ref="procedureModal">
-          <procedure :id="id" :proc="proc" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
+          <input-hide :text="proc.name"> </input-hide>
+          <procedure v-on:updateProc="updateProc" :id="id" :proc="proc" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
           <button class="item item-link" v-on:click="removeUserProcedure(index)" @click="$refs.procedureModal[index].close()"> remove </button>
           <button class="item item-link" @click="$refs.procedureModal[index].close()"> CLOSE </button>
         </q-modal>
@@ -16,10 +17,11 @@
 <script>
 import Procedure from './Procedure'
 import draggable from 'vuedraggable'
+import InputHide from './InputHide'
 
 export default {
   name: 'user-procedure',
-  components: { Procedure, draggable },
+  components: { Procedure, draggable, InputHide },
   props: ['name', 'procedureObject', 'id'],
   data () {
     return {
@@ -30,7 +32,8 @@ export default {
       this.$store.dispatch('removeUserProcedure', {id: this.id, index: index})
     },
     updateProc: function (e) {
-      this.$store.dispatch('updateProc', {id: this.id, pindex: this.pindex, value: e.target.value, index: e.target.dataset.index, key: e.target.dataset.key})
+      console.log(e)
+      this.$store.dispatch('updateUserProc', {id: this.id, pindex: e.target.dataset.index, value: e.target.value, key: e.target.dataset.key})
     }
   },
   computed: {
@@ -62,10 +65,19 @@ export default {
     justify-content: center;
     align-items: center;
     p {
-      color: black;
       padding: 0;
       margin: 0;
     }
+  }
+}
+.modal {
+  p {
+    color: black;
+  }
+}
+.item-link {
+  p {
+    color: black;
   }
 }
 </style>

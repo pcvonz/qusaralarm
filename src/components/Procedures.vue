@@ -3,7 +3,7 @@
     <div v-for="(proc, index) in procedureObject">
       <div class="item item-link" @click="$refs.procedureModal[index].open()"> {{ proc.name }} </div>
       <q-modal ref="procedureModal">
-        <procedure :proc="proc" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
+        <procedure v-on:updateProc="updateProc" :proc="proc" :pindex="index" :name="proc.name" :options="proc.options"></procedure>
         <button class="item item-link" @click="$refs.procedureModal[index].close()"> CLOSE </button>
         <button v-on:click="testProcedure(proc)" >Test Alarm</button>
         <button v-on:click="addUserProcedure(proc)" @click="$refs.procedureModal[index].close()">Add this to alarm </button>
@@ -32,7 +32,8 @@ export default {
       this.$store.dispatch('removeProcedure', index)
     },
     updateProc (e) {
-      this.$store.dispatch('updateProc', {pindex: this.pindex, value: e.target.value, index: e.target.dataset.index, key: e.target.dataset.key})
+      console.log(e.target.dataset)
+      this.$store.dispatch('updateProc', {pindex: e.target.dataset.index, value: e.target.value, key: e.target.dataset.key})
     },
     testProcedure (proc) {
       proc.trigger()
