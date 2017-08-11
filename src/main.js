@@ -36,6 +36,53 @@ class AlarmProcedure {
   }
 }
 
+class AndroidAudio extends AlarmProcedure {
+  constructor (name, options) {
+    super(name, options, 'playlist')
+  }
+  set media (value) {
+    console.log('I SET IT OK')
+    console.log(value)
+    this.media = value
+  }
+  trigger () {
+    let playlist
+    axios.get(this.options['stream']).then(response => {
+      var re = /^\s*\n/gm
+      playlist = response.data.replace(re, '').split('\n').slice(2)
+      this.media = new Media(playlist[0], () => {
+        console.log('audio play success')
+      }, (err) => {
+        console.log(err)
+      })
+      this.media.play()
+    })
+    // Locally scoped so Vuex store is not mutated
+    let timeOut = this.options.timeOut
+    if (timeOut != null) {
+      let timeOutID = setInterval(() => {
+        timeOut--
+        if (timeOut <= 0) {
+          if (store.state.userProcedures.length > 0) {
+            store.dispatch('playNextUserProcedure')
+          }
+          else {
+            store.dispatch('playNextUserProcedure')
+          }
+          this.media.stop()
+          clearInterval(timeOutID)
+        }
+      }, 1000)
+    }
+  }
+  stop () {
+    this.media.stop()
+  }
+  set setOptions (newOptions) {
+    this.options = newOptions
+  }
+}
+
 class HabiticaDailies extends AlarmProcedure {
   constructor (name, options) {
     super(name, options, 'habiticadailies')
@@ -149,18 +196,21 @@ function assignClass (object) {
       return new AudioStream(object.name, object.options)
     case 'habiticadailies':
       return new HabiticaDailies(object.name, object.options)
+    case 'playlist':
+      return new AndroidAudio(object.name, object.options)
   }
 }
 
 let weather = new WeatherClass('Weather', {zip: '98335', countryCode: 'us', unit: 'imperial'})
 
 let npr = new AudioStream('NPR Stream', {stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3', timeOut: null})
+let fluid = new AndroidAudio('Fluid Radio', {stream: 'http://webcast-connect.net/value/uk4/9270/listen.m3u', timeOut: null})
 
 Vue.use(Quasar) // Install Quasar Framework
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
-  strict: process.env.NODE_ENV,
+  strict: true,
   state: {
     count: null,
     procedures: [],
@@ -192,6 +242,11 @@ const store = new Vuex.Store({
     },
     createStream (state, p) {
       let stream = new AudioStream(p.name, {stream: p.options.stream, timeOut: p.options.timeOut})
+      state.procedures.push(stream)
+      Quasar.LocalStorage.set('procedures', state.procedures)
+    },
+    createPlaylist (state, p) {
+      let stream = new AndroidAudio(p.name, {stream: p.options.stream, timeOut: p.options.timeOut})
       state.procedures.push(stream)
       Quasar.LocalStorage.set('procedures', state.procedures)
     },
@@ -315,6 +370,7 @@ const store = new Vuex.Store({
 
 store.commit('addProcedure', weather)
 store.commit('addProcedure', npr)
+store.commit('addProcedure', fluid)
 
 // Custom directive for autofocus on load
 
@@ -344,7 +400,7 @@ if (local.get.item('alarms') !== null && local.get.item('alarms') !== 'undefined
 }
 if (Quasar.LocalStorage.get.item('procedures') != null && local.get.item('procedures') !== 'undefined') {
   Quasar.LocalStorage.get.item('procedures').forEach(function (p) {
-    if (!(p.name === 'NPR Stream' || p.name === 'Weather')) {
+    if (!(p.name === 'NPR Stream' || p.name === 'Weather' || p.name === 'Fluid Radio')) {
       console.log('add procedure from local storage')
       store.commit('addProcedure', assignClass(p))
     }

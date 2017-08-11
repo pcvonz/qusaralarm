@@ -33,10 +33,11 @@
             <div ref="tab-1">
               <procedures :id="id" :procedureObject="procedures"></procedures>
             </div>
-            <div ref="tab-2">:class="" 
+            <div ref="tab-2">
               <audio-stream></audio-stream>
               <weather></weather>
               <habitica></habitica>
+              <playlist-stream></playlist-stream>
               <h3> Clear Storage </h3>
               <button v-on:click="clearStorage">Clear Storage</button>
             </div>
@@ -58,6 +59,7 @@ import UserProcedures from './UserProcedures'
 import Weather from './Weather'
 import AudioStream from './AudioStream'
 import Habitica from './Habitica'
+import PlaylistStream from './PlaylistStream'
 import Podcast from './Podcast'
 import InputHide from './InputHide'
 import { LocalStorage, Toast } from 'quasar'
@@ -65,7 +67,7 @@ import moment from 'moment'
 // import axios from 'axios'
 
 export default {
-  components: { InputHide, Podcast, Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica },
+  components: { InputHide, Podcast, Clock, Alarm, Procedures, UserProcedures, Weather, AudioStream, Habitica, PlaylistStream },
   data () {
     return {
       titleShown: true,

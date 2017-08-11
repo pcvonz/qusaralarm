@@ -8,6 +8,7 @@ module.exports = {
   },
   globals: {
     'cordova': true,
+    'Media': true,
     'TTS': true,
     'DEV': true,
     'PROD': true,
