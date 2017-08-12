@@ -11,4 +11,4 @@ cordova/plugins
 thumbs.db
 !.gitkeep
 yarn-error.log
-
+src/config.js
