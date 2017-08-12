@@ -11,6 +11,9 @@ import router from './router'
 import Vuex from 'vuex'
 import axios from 'axios'
 import Habitica from 'habitica'
+import config from './config.js'
+
+console.log(config())
 // import moment from 'moment'
 
 class AlarmProcedure {
@@ -168,7 +171,7 @@ class AudioStream extends AlarmProcedure {
 const WeatherClass = class Weather extends AlarmProcedure {
   constructor (name, options) {
     super(name, options, 'weather')
-    this.WEATHER_API = 'ff87b07316bb79c4e2e28f37ffe61dbf'
+    this.WEATHER_API = ''
   }
   trigger () {
     axios.get(`http://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}&units=${this.options.unit}&APPID=${this.WEATHER_API}`).then(response => {
