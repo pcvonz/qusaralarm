@@ -3,7 +3,7 @@
     <q-layout>
     <div class="layout-view">
         <div class="main">
-          <input-hide v-focus :text="title" v-on:changeText="changeTitle"> </input-hide>
+          <input-hide v-focus :text="title" v-on:updateTitle="updateTitle"> </input-hide>
           <div class="hide" :class="{ alarmModal: alarmShown}">
             <button v-on:click="stopAlarm">Stop Alarm</button>
           </div>
@@ -58,7 +58,7 @@ import Habitica from './Habitica'
 import PlaylistStream from './PlaylistStream'
 import Podcast from './Podcast'
 import InputHide from './InputHide'
-import { LocalStorage, Toast } from 'quasar'
+import { LocalStorage, Toast, Platform } from 'quasar'
 import moment from 'moment'
 // import axios from 'axios'
 
@@ -86,7 +86,7 @@ export default {
       this.day = day
     },
     updateAlarm: function () {
-      if (typeof cordova !== 'undefined') {
+      if (Platform.is.cordova) {
         cordova.plugins.backgroundMode.configure({
           title: 'Alarm clock',
           text: this.timeUntil
@@ -116,12 +116,7 @@ export default {
       LocalStorage.clear('alarms')
     },
     changeTitle: function (e) {
-      if (e.target.tagName === 'P' || e.target.tagName === 'DIV') {
-        this.titleShown = !this.titleShown
-      }
-      else {
-        e.target.focus()
-      }
+      console.log(e)
     },
     footerClass: function (e) {
       if (e === parseInt(this.id)) {
@@ -130,6 +125,9 @@ export default {
       else {
         return 'circle'
       }
+    },
+    updateTitle: function (newTitle) {
+      this.$store.dispatch('updateTitle', {id: this.id, title: newTitle})
     }
   },
   watch: {
@@ -183,7 +181,7 @@ export default {
     }
   },
   beforeMount: function () {
-    if (typeof cordova !== 'undefined') {
+    if (Platform.is.cordova) {
       let alarmTime = this.$store.state.alarms[this.id].alarm.split(':')
       // If the alarm is in the past, add a day
       let notify = moment().hours(alarmTime[0]).minutes(alarmTime[1])
@@ -205,6 +203,23 @@ export default {
         every: 'day',
         at: notify.toDate()
       })
+      let VolumeControl = cordova.plugins.VolumeControl
+      VolumeControl.getVolume((vol) => {
+        if (vol !== '1.0') {
+          Toast.create.warning({
+            html: `Volume below maximum! Currently at: ${vol}`,
+            icon: 'warning',
+            button: {
+              label: 'Set Vol',
+              handler () {
+                VolumeControl.setVolume(1.0)
+              }
+            }
+
+          })
+        }
+      })
+      console.log('update')
     }
   }
 }

@@ -12,6 +12,7 @@ import Vuex from 'vuex'
 import axios from 'axios'
 import Habitica from 'habitica'
 import config from './config.js'
+import moment from 'moment'
 
 // import moment from 'moment'
 class AlarmProcedure {
@@ -27,13 +28,27 @@ class AlarmProcedure {
     return this.options
   }
   speak (string) {
-    TTS.speak(string, function () {
-      console.log('speak success')
-      store.dispatch('playNextUserProcedure')
-    }, function (reason) {
-      store.dispatch('playNextUserProcedure')
-      console.log(reason)
-    })
+    if (Quasar.Platform.is.cordova) {
+      TTS.speak(string, function () {
+        console.log('speak success')
+        store.dispatch('playNextUserProcedure')
+      }, function (reason) {
+        store.dispatch('playNextUserProcedure')
+        console.log(reason)
+      })
+    }
+    else {
+      console.log(string)
+    }
+  }
+}
+
+class SpeakDate extends AlarmProcedure {
+  constructor (name, options) {
+    super(name, options, 'speakdate')
+  }
+  trigger () {
+    this.speak(`Todays date is ${moment().format(this.options.format)}`)
   }
 }
 
@@ -169,7 +184,7 @@ class AudioStream extends AlarmProcedure {
 const WeatherClass = class Weather extends AlarmProcedure {
   constructor (name, options) {
     super(name, options, 'weather')
-    this.WEATHER_API = config.WEATHER_API
+    this.WEATHER_API = config().WEATHER_API
   }
   trigger () {
     axios.get(`http://api.openweathermap.org/data/2.5/weather?zip=${this.options.zip},${this.options.countryCode}&units=${this.options.unit}&APPID=${this.WEATHER_API}`).then(response => {
@@ -199,13 +214,15 @@ function assignClass (object) {
       return new HabiticaDailies(object.name, object.options)
     case 'playlist':
       return new AndroidAudio(object.name, object.options)
+    case 'speakdate':
+      return new SpeakDate(object.name, object.options)
   }
 }
 
 let weather = new WeatherClass('Weather', {zip: '98335', countryCode: 'us', unit: 'imperial'})
-
 let npr = new AudioStream('NPR Stream', {stream: 'https://nprdmp-live01-mp3.akacast.akamaistream.net/7/998/364916/v1/npr.akacast.akamaistream.net/nprdmp_live01_mp3', timeOut: null})
 let fluid = new AndroidAudio('Fluid Radio', {stream: 'http://webcast-connect.net/value/uk4/9270/listen.m3u', timeOut: null})
+let date = new SpeakDate('Speak Date', {format: 'MMMM Do, dddd'})
 
 Vue.use(Quasar) // Install Quasar Framework
 Vue.use(Vuex)
@@ -221,10 +238,10 @@ const store = new Vuex.Store({
     // If it's sorted it needs to be sorted by the time closest
     // to the current time...
     alarms: {
-      0: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: false, Friday: true, Saturday: true, Sunday: true }, armed: true},
-      1: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true},
-      2: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true},
-      3: {title: 'Default', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true}
+      0: {title: 'Default 1', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: false, Friday: true, Saturday: true, Sunday: true }, armed: true},
+      1: {title: 'Default 2', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true},
+      2: {title: 'Default 3', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true},
+      3: {title: 'Default 4', procedures: [], alarm: '8:00', days: { Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true, Saturday: true, Sunday: true }, armed: true}
     },
     triggered: true
   },
@@ -373,6 +390,7 @@ const store = new Vuex.Store({
 store.commit('addProcedure', weather)
 store.commit('addProcedure', npr)
 store.commit('addProcedure', fluid)
+store.commit('addProcedure', date)
 
 // Custom directive for autofocus on load
 

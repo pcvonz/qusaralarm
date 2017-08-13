@@ -2,7 +2,7 @@
   <!-- Don't drop "q-app" class -->
   <div>
     <div v-on:click="changeText"> 
-      <input :class="{ isShown: textShown}" v-on:blur="changeText" v-model:text="text" type="text"/>
+      <input class="changeTextInput" v-focus v-if="!textShown" v-on:blur="textShown = !textShown" v-model:setText="setText" type="text"/>
       <p :class="{ isShown: !textShown}"> {{ text }} </p>
     </div>
   </div>
@@ -30,6 +30,15 @@ export default {
     }
   },
   computed: {
+    setText: {
+      get: function () {
+        return this.text
+      },
+      set: function (newTitle) {
+        console.log(newTitle)
+        this.$emit('updateTitle', newTitle)
+      }
+    }
   },
   mounted: function () {
   }
@@ -42,4 +51,8 @@ export default {
     background-color: rgba(239, 103, 67, 0);
     transition: background-color .2s;
   }
+.changeTextInput {
+  color: white;
+}
 </style>
+
